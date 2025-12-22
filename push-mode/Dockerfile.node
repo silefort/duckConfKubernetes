@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+# Installer SSH server
+RUN apt-get update && \
+    apt-get install -y openssh-server && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configurer SSH
+RUN mkdir -p /var/run/sshd && \
+    echo 'root:root' | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+WORKDIR /app
+
+# Copier requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exposer le port SSH
+EXPOSE 22
+
+# Script de démarrage qui lance SSH et l'agent
+COPY start_node.sh /start_node.sh
+RUN chmod +x /start_node.sh
+
+CMD ["/start_node.sh"]

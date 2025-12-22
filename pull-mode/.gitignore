@@ -1,0 +1,13 @@
+# Fichiers d'état générés
+node-*_desired.txt
+node-*_running.txt
+agent_desired_state.txt
+running_containers.txt
+desired_state.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python

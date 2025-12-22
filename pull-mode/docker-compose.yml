@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  api-server:
+    build: .
+    command: python3 api_server.py
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  scheduler:
+    build: .
+    command: python3 scheduler.py
+    volumes:
+      - .:/app
+    depends_on:
+      - api-server
+    environment:
+      - API_URL=http://api-server:8080
+      - NODES=node-1,node-2,node-3
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-controller:
+    build: .
+    command: python3 node_controller.py
+    volumes:
+      - .:/app
+    depends_on:
+      - api-server
+    environment:
+      - API_URL=http://api-server:8080
+      - HEARTBEAT_TIMEOUT=15
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-1:
+    build: .
+    command: python3 agent.py
+    volumes:
+      - .:/app
+    depends_on:
+      - api-server
+    environment:
+      - API_URL=http://api-server:8080
+      - NODE_NAME=node-1
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-2:
+    build: .
+    command: python3 agent.py
+    volumes:
+      - .:/app
+    depends_on:
+      - api-server
+    environment:
+      - API_URL=http://api-server:8080
+      - NODE_NAME=node-2
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-3:
+    build: .
+    command: python3 agent.py
+    volumes:
+      - .:/app
+    depends_on:
+      - api-server
+    environment:
+      - API_URL=http://api-server:8080
+      - NODE_NAME=node-3
+    stdin_open: true
+    tty: true
+    working_dir: /app

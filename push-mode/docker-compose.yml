@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api-server:
+    build: .
+    command: python3 api_server.py
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - node-1
+      - node-2
+      - node-3
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    volumes:
+      - .:/app
+    environment:
+      - NODE_NAME=node-1
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    volumes:
+      - .:/app
+    environment:
+      - NODE_NAME=node-2
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    volumes:
+      - .:/app
+    environment:
+      - NODE_NAME=node-3
+    stdin_open: true
+    tty: true
+    working_dir: /app
