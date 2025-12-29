@@ -36,9 +36,6 @@ class KubeletSimulator:
     def get_desired_state(self):
         """Récupère l'état désiré depuis l'API pour ce nœud uniquement"""
         try:
-            # Envoyer le heartbeat
-            self.send_heartbeat()
-
             response = requests.get(
                 f"{self.api_url}/api/containers",
                 params={"node": self.node_name},
@@ -114,6 +111,10 @@ class KubeletSimulator:
 
         try:
             while True:
+                # Envoyer le heartbeat
+                self.send_heartbeat()
+
+                # Reconcilie l'etat observe avec l'etat desire
                 self.reconcile()
                 time.sleep(5)
         except KeyboardInterrupt:
