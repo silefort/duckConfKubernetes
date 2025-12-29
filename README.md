@@ -87,6 +87,15 @@ done
 curl http://localhost:8080/api/containers
 ```
 
+### Dashboard
+
+Pour visualiser l'état du cluster graphiquement, 
+
+```bash
+docker compose --profile dashboard up dashboard
+```
+
+
 ## 📁 Structure du projet
 
 ```
