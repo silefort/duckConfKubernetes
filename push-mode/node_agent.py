@@ -13,7 +13,7 @@ if __name__ == "__main__":
     print("En attente de commandes SSH...")
 
     # Créer le fichier running.txt vide s'il n'existe pas
-    running_file = f"/app/{NODE_NAME}_running.txt"
+    running_file = f"/app/nodes/{NODE_NAME}_running.txt"
     if not os.path.exists(running_file):
         with open(running_file, 'w') as f:
             f.write('')

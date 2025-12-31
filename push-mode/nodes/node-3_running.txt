@@ -1,2 +1,5 @@
 duckconf-1
 duckconf-3
+nginx3
+nginx6
+nginx9
