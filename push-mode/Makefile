@@ -71,14 +71,10 @@ get-containers:
 	@curl -s http://localhost:8080/containers | python3 -m json.tool
 
 view-nodes:
-	@echo "=== NODE-1 ==="
-	@if [ -f node-1_running.txt ]; then cat node-1_running.txt; else echo "  Aucun"; fi
-	@echo ""
-	@echo "=== NODE-2 ==="
-	@if [ -f node-2_running.txt ]; then cat node-2_running.txt; else echo "  Aucun"; fi
-	@echo ""
-	@echo "=== NODE-3 ==="
-	@if [ -f node-3_running.txt ]; then cat node-3_running.txt; else echo "  Aucun"; fi
+	@for node in 1 2 3; do \
+		echo "=== NODE-$$node ==="; \
+		if [ -f nodes/node-$${node}_running.txt ]; then cat nodes/node-$${node}_running.txt; else echo "  Aucun"; fi \
+	done
 
 clean:
 	rm -f node-1_running.txt
