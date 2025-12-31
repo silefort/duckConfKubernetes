@@ -31,6 +31,7 @@ help:
 	@echo "Monitoring:"
 	@echo "  make view-nodes    - Affiche l'état des nœuds"
 	@echo "  make view-all-nodes - Affiche containers sur chaque nœud"
+	@echo "  make view-desired: - Affiche l'état désiré du cluster"
 	@echo "  make clean         - Nettoie les fichiers générés"
 	@echo ""
 
@@ -96,37 +97,24 @@ stop-node:
 	@echo "✓ Nœud $(NODE) arrêté - Le node controller devrait détecter la perte"
 
 view-all-nodes:
-	@echo "=== NODE-1 ==="
-	@echo "Désiré:"
-	@if [ -f node-1_desired.txt ]; then cat node-1_desired.txt; else echo "  Aucun"; fi
-	@echo "Running:"
-	@if [ -f node-1_running.txt ]; then cat node-1_running.txt; else echo "  Aucun"; fi
-	@echo ""
-	@echo "=== NODE-2 ==="
-	@echo "Désiré:"
-	@if [ -f node-2_desired.txt ]; then cat node-2_desired.txt; else echo "  Aucun"; fi
-	@echo "Running:"
-	@if [ -f node-2_running.txt ]; then cat node-2_running.txt; else echo "  Aucun"; fi
-	@echo ""
-	@echo "=== NODE-3 ==="
-	@echo "Désiré:"
-	@if [ -f node-3_desired.txt ]; then cat node-3_desired.txt; else echo "  Aucun"; fi
-	@echo "Running:"
-	@if [ -f node-3_running.txt ]; then cat node-3_running.txt; else echo "  Aucun"; fi
+	@for node in 1 2 3; do \
+		echo "=== NODE-$$node ==="; \
+		echo "Désiré:"; \
+		if [ -f nodes/node-$${node}_desired.txt ]; then cat nodes/node-$${node}_desired.txt; else echo "  Aucun"; fi; \
+	echo "\nRunning:"; \
+		if [ -f nodes/node-$${node}_running.txt ]; then cat nodes/node-$${node}_running.txt; else echo "  Aucun"; fi; \
+		echo ""; \
+	done
 
 view-desired:
-	@echo "État désiré (agent local):"
-	@if [ -f agent_desired_state.txt ]; then cat agent_desired_state.txt; else echo "Aucun"; fi
-
-view-running:
-	@echo "Containers en cours d'exécution:"
-	@if [ -f running_containers.txt ]; then cat running_containers.txt; else echo "Aucun container"; fi
+	@echo "État désiré :"
+	@if [ -f desired_state.txt ]; then cat desired_state.txt; else echo "Aucun"; fi
 
 clean:
-	rm -f node-1_desired.txt node-1_running.txt
-	rm -f node-2_desired.txt node-2_running.txt
-	rm -f node-3_desired.txt node-3_running.txt
-	rm -f running_containers.txt agent_desired_state.txt
+	rm -f nodes/node-1_desired.txt nodes/node-1_running.txt
+	rm -f nodes/node-2_desired.txt nodes/node-2_running.txt
+	rm -f nodes/node-3_desired.txt node-3_running.txt
+	rm -f desired_state.txt
 	@echo "✓ Fichiers de state nettoyés"
 
 clean-all: clean stop
