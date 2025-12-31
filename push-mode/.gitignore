@@ -1,6 +1,5 @@
 # Fichiers d'état générés
 nodes/node*
-desired_state.txt
 
 # Python
 __pycache__/

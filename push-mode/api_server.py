@@ -36,7 +36,7 @@ def get_containers_from_node_ssh(node_name):
         ssh.connect(node_name, port=SSH_PORT, username=SSH_USER, password=SSH_PASSWORD)
 
         # Lire le fichier running.txt distant
-        remote_file = f"/app/{node_name}_running.txt"
+        remote_file = f"/app/nodes/{node_name}_running.txt"
         stdin, stdout, stderr = ssh.exec_command(f"cat {remote_file} 2>/dev/null || echo ''")
         content = stdout.read().decode('utf-8').strip()
 
@@ -60,7 +60,7 @@ def write_container_to_node_ssh(node_name, container_name):
         ssh.connect(node_name, port=SSH_PORT, username=SSH_USER, password=SSH_PASSWORD)
 
         # Lire le fichier running.txt distant
-        remote_file = f"/app/{node_name}_running.txt"
+        remote_file = f"/app/nodes/{node_name}_running.txt"
         stdin, stdout, stderr = ssh.exec_command(f"cat {remote_file} 2>/dev/null || echo ''")
         content = stdout.read().decode('utf-8').strip()
 

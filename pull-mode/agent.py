@@ -18,8 +18,8 @@ class KubeletSimulator:
                  running_containers_file=None):
         self.api_url = api_url
         self.node_name = node_name
-        self.desired_state_file = Path(desired_state_file or f"{node_name}_desired.txt")
-        self.running_containers_file = Path(running_containers_file or f"{node_name}_running.txt")
+        self.desired_state_file = Path(desired_state_file or f"nodes/{node_name}_desired.txt")
+        self.running_containers_file = Path(running_containers_file or f"nodes/{node_name}_running.txt")
         self.desired_state_file.touch()
         self.running_containers_file.touch()
 
