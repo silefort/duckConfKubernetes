@@ -81,3 +81,19 @@ services:
     stdin_open: true
     tty: true
     working_dir: /app
+
+  dashboard:
+    build: .
+    command: python3 dashboard.py
+    volumes:
+      - .:/app
+    depends_on:
+      - api-server
+    environment:
+      - API_URL=http://api-server:8080
+      - REFRESH_INTERVAL=5
+    stdin_open: true
+    tty: true
+    working_dir: /app
+    profiles:
+      - dashboard
