@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 
 class NodeController:
-    def __init__(self, api_url="http://localhost:8080", heartbeat_timeout=15):
+    def __init__(self, api_url="http://localhost:8081", heartbeat_timeout=15):
         self.api_url = api_url
         self.heartbeat_timeout = heartbeat_timeout
 
@@ -84,7 +84,7 @@ class NodeController:
 
 
 if __name__ == "__main__":
-    api_url = os.getenv("API_URL", "http://localhost:8080")
+    api_url = os.getenv("API_URL", "http://localhost:8081")
     heartbeat_timeout = int(os.getenv("HEARTBEAT_TIMEOUT", "15"))
     controller = NodeController(api_url=api_url, heartbeat_timeout=heartbeat_timeout)
     controller.run()

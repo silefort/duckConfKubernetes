@@ -12,7 +12,7 @@ from pathlib import Path
 
 class KubeletSimulator:
     def __init__(self,
-                 api_url="http://localhost:8080",
+                 api_url="http://localhost:8081",
                  node_name="node-1",
                  desired_state_file=None,
                  running_containers_file=None):
@@ -122,7 +122,7 @@ class KubeletSimulator:
 
 
 if __name__ == "__main__":
-    api_url = os.getenv("API_URL", "http://localhost:8080")
+    api_url = os.getenv("API_URL", "http://localhost:8081")
     node_name = os.getenv("NODE_NAME", "node-1")
     agent = KubeletSimulator(api_url=api_url, node_name=node_name)
     agent.run()

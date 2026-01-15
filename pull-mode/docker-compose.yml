@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8080:8080"
+      - "8081:8081"
     stdin_open: true
     tty: true
     working_dir: /app
@@ -20,7 +20,7 @@ services:
     depends_on:
       - api-server
     environment:
-      - API_URL=http://api-server:8080
+      - API_URL=http://api-server:8081
       - NODES=node-1,node-2,node-3
     stdin_open: true
     tty: true
@@ -34,7 +34,7 @@ services:
     depends_on:
       - api-server
     environment:
-      - API_URL=http://api-server:8080
+      - API_URL=http://api-server:8081
       - HEARTBEAT_TIMEOUT=15
     stdin_open: true
     tty: true
@@ -48,7 +48,7 @@ services:
     depends_on:
       - api-server
     environment:
-      - API_URL=http://api-server:8080
+      - API_URL=http://api-server:8081
       - NODE_NAME=node-1
     stdin_open: true
     tty: true
@@ -62,7 +62,7 @@ services:
     depends_on:
       - api-server
     environment:
-      - API_URL=http://api-server:8080
+      - API_URL=http://api-server:8081
       - NODE_NAME=node-2
     stdin_open: true
     tty: true
@@ -76,7 +76,7 @@ services:
     depends_on:
       - api-server
     environment:
-      - API_URL=http://api-server:8080
+      - API_URL=http://api-server:8081
       - NODE_NAME=node-3
     stdin_open: true
     tty: true

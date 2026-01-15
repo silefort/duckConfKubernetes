@@ -117,10 +117,8 @@ def start_container():
     if not container_name:
         return jsonify({"error": "Missing 'name' parameter"}), 400
 
-    # Si le nœud n'est pas spécifié, on le sélectionne automatiquement
-    if not node_name:
-        node_name = select_node()
-        print(f"  ⚙ Scheduling: {container_name} → {node_name}")
+    node_name = select_node()
+    print(f"  ⚙ Scheduling: {container_name} → {node_name}")
 
     # Se connecter en SSH au nœud pour démarrer le container
     added = write_container_to_node_ssh(node_name, container_name)

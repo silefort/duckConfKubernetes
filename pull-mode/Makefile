@@ -78,18 +78,18 @@ shell:
 	$(DOCKER_COMPOSE) run --rm node-1 /bin/bash
 
 api-list:
-	@curl -s http://localhost:8080/api/containers | python3 -m json.tool
+	@curl -s http://localhost:8081/api/containers | python3 -m json.tool
 
 api-add:
-	@curl -s -X POST http://localhost:8080/api/containers \
+	@curl -s -X POST http://localhost:8081/api/containers \
 		-H "Content-Type: application/json" \
 		-d '{"name": "$(NAME)"}' | python3 -m json.tool
 
 api-remove:
-	@curl -s -X DELETE http://localhost:8080/api/containers/$(NAME) | python3 -m json.tool
+	@curl -s -X DELETE http://localhost:8081/api/containers/$(NAME) | python3 -m json.tool
 
 view-nodes:
-	@curl -s http://localhost:8080/api/nodes | python3 -m json.tool
+	@curl -s http://localhost:8081/api/nodes | python3 -m json.tool
 
 stop-node:
 	@echo "Arrêt du nœud $(NODE)..."

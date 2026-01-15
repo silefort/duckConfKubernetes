@@ -138,4 +138,4 @@ if __name__ == "__main__":
     print("API SERVER")
     print(f"État: {DESIRED_STATE_FILE}")
     print()
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    app.run(host='0.0.0.0', port=8081, debug=False)

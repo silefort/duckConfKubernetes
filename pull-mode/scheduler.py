@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 class Scheduler:
-    def __init__(self, api_url="http://localhost:8080", nodes=None):
+    def __init__(self, api_url="http://localhost:8081", nodes=None):
         self.api_url = api_url
         self.nodes = nodes or ["node-1", "node-2", "node-3"]
         self.current_node_index = 0
@@ -71,7 +71,7 @@ class Scheduler:
 
 
 if __name__ == "__main__":
-    api_url = os.getenv("API_URL", "http://localhost:8080")
+    api_url = os.getenv("API_URL", "http://localhost:8081")
     nodes = os.getenv("NODES", "node-1,node-2,node-3").split(",")
     scheduler = Scheduler(api_url=api_url, nodes=nodes)
     scheduler.run()
