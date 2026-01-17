@@ -26,8 +26,8 @@ class NodeController:
         data = response.json()
         return data.get("containers", [])
 
-    def reschedule_container(self, container_name):
-        """Force le re-scheduling d'un container (enlève le nœud)"""
+    def mark_for_rescheduling(self, container_name):
+        """Force le réassignement d'un container"""
         response = requests.patch(
             f"{self.api_url}/api/containers/{container_name}",
             json={"node": None}
@@ -35,7 +35,7 @@ class NodeController:
         return response.ok
 
     def check_nodes(self):
-        """Vérifie la santé des nœuds et réassigne si nécessaire"""
+        """Vérifie la santé des nœuds et indique les containers à réassigner sur de nouveaux noeuds si nécessaire"""
         nodes = self.get_nodes()
         containers = self.get_containers()
 
@@ -50,7 +50,7 @@ class NodeController:
             print("✓ Tous les nœuds sont UP")
             return
 
-        # Réassigner les containers des nœuds down
+        # Marque les containers des nœuds down qui doivent être réassigner
         containers_to_reschedule = [
             c for c in containers
             if c.get('node') in down_nodes
@@ -60,9 +60,9 @@ class NodeController:
             print(f"  Aucun container à réassigner")
             return
 
-        print(f"📋 Réassignation de {len(containers_to_reschedule)} container(s)")
+        print(f"📋 Marque {len(containers_to_reschedule)} container(s) à réassigner sur de nouveaux noeuds")
         for container in containers_to_reschedule:
-            success = self.reschedule_container(container['name'])
+            success = self.mark_for_rescheduling(container['name'])
             if success:
                 print(f"  ✓ {container['name']} (était sur {container['node']})")
             else:
