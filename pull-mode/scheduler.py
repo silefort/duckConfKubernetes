@@ -15,6 +15,14 @@ class Scheduler:
         self.nodes = nodes or ["node-1", "node-2", "node-3"]
         self.current_node_index = 0
 
+    def update_up_nodes(self):
+        """Met à jour self.nodes avec uniquement les nœuds UP"""
+        response = requests.get(f"{self.api_url}/api/nodes")
+        data = response.json()
+        all_nodes = data.get("nodes", [])
+        self.nodes = [node['name'] for node in all_nodes if node['status'] == 'up']
+        return response.ok
+
     def get_next_node(self):
         """Round-robin simple pour choisir un nœud"""
         node = self.nodes[self.current_node_index]
@@ -46,6 +54,9 @@ class Scheduler:
             return
 
         print(f"\n📋 {len(unscheduled)} container(s) à scheduler")
+
+        # Met à jour la liste des noeuds UP
+        self.update_up_nodes()
 
         for container in unscheduled:
             node = self.get_next_node()
