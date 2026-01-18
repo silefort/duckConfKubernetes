@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
-"""
-Scheduler - Assigne les containers aux nœuds
-"""
-
 import time
 import os
 import requests
-from pathlib import Path
 
 
 class Scheduler:
@@ -16,58 +11,50 @@ class Scheduler:
         self.current_node_index = 0
 
     def get_next_node(self):
-        """Round-robin simple pour choisir un nœud"""
         node = self.nodes[self.current_node_index]
         self.current_node_index = (self.current_node_index + 1) % len(self.nodes)
         return node
 
-    def get_containers(self):
-        """Récupère tous les containers"""
-        response = requests.get(f"{self.api_url}/api/containers")
+    def get_apps(self):
+        response = requests.get(f"{self.api_url}/api/apps")
         data = response.json()
-        return data.get("containers", [])
+        return data.get("apps", [])
 
-    def update_container_node(self, container_name, node_name):
-        """Met à jour le nœud d'un container"""
+    def update_app_node(self, app_name, node_name):
         response = requests.patch(
-            f"{self.api_url}/api/containers/{container_name}",
+            f"{self.api_url}/api/apps/{app_name}",
             json={"node": node_name}
         )
         return response.ok
 
     def schedule(self):
-        """Assigne un nœud aux containers qui n'en ont pas"""
-        containers = self.get_containers()
+        apps = self.get_apps()
 
-        unscheduled = [c for c in containers if not c.get('node')]
+        unscheduled = [a for a in apps if not a.get('node')]
 
         if not unscheduled:
-            print("✓ Tous les containers sont schedulés")
+            print("Toutes les apps sont schedulees")
             return
 
-        print(f"\n📋 {len(unscheduled)} container(s) à scheduler")
+        print(f"\n{len(unscheduled)} app(s) a scheduler")
 
-        for container in unscheduled:
+        for app in unscheduled:
             node = self.get_next_node()
-            success = self.update_container_node(container['name'], node)
+            success = self.update_app_node(app['name'], node)
             if success:
-                print(f"  ✓ {container['name']} → {node}")
+                print(f"  {app['name']} -> {node}")
             else:
-                print(f"  ✗ Échec pour {container['name']}")
+                print(f"  Echec pour {app['name']}")
 
     def run(self):
-        """Boucle de scheduling"""
         print("SCHEDULER")
         print(f"API Server: {self.api_url}")
-        print(f"Nœuds disponibles: {', '.join(self.nodes)}")
+        print(f"Noeuds disponibles: {', '.join(self.nodes)}")
         print()
 
-        try:
-            while True:
-                self.schedule()
-                time.sleep(5)
-        except KeyboardInterrupt:
-            print("\n\n👋 Arrêt\n")
+        while True:
+            self.schedule()
+            time.sleep(5)
 
 
 if __name__ == "__main__":

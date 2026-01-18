@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Le reste des fichiers sera monté via volume
 
-CMD ["python3", "agent.py"]
+CMD ["python3", "app_controller.py"]

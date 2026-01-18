@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Node Controller - Surveille la santé des nœuds
-"""
-
 import time
 import os
 import requests
@@ -15,72 +11,61 @@ class NodeController:
         self.heartbeat_timeout = heartbeat_timeout
 
     def get_nodes(self):
-        """Récupère l'état de tous les nœuds"""
         response = requests.get(f"{self.api_url}/api/nodes")
         data = response.json()
         return data.get("nodes", [])
 
-    def get_containers(self):
-        """Récupère tous les containers"""
-        response = requests.get(f"{self.api_url}/api/containers")
+    def get_apps(self):
+        response = requests.get(f"{self.api_url}/api/apps")
         data = response.json()
-        return data.get("containers", [])
+        return data.get("apps", [])
 
-    def reschedule_container(self, container_name):
-        """Force le re-scheduling d'un container (enlève le nœud)"""
+    def reschedule_app(self, app_name):
         response = requests.patch(
-            f"{self.api_url}/api/containers/{container_name}",
+            f"{self.api_url}/api/apps/{app_name}",
             json={"node": None}
         )
         return response.ok
 
     def check_nodes(self):
-        """Vérifie la santé des nœuds et réassigne si nécessaire"""
         nodes = self.get_nodes()
-        containers = self.get_containers()
-
-        # Identifier les nœuds down
+        apps = self.get_apps()
         down_nodes = []
         for node in nodes:
             if node['status'] == 'down':
                 down_nodes.append(node['name'])
-                print(f"⚠ Nœud DOWN détecté: {node['name']}")
+                print(f"Noeud DOWN detecte: {node['name']}")
 
         if not down_nodes:
-            print("✓ Tous les nœuds sont UP")
+            print("Tous les noeuds sont UP")
             return
 
-        # Réassigner les containers des nœuds down
-        containers_to_reschedule = [
-            c for c in containers
-            if c.get('node') in down_nodes
+        apps_to_reschedule = [
+            a for a in apps
+            if a.get('node') in down_nodes
         ]
 
-        if not containers_to_reschedule:
-            print(f"  Aucun container à réassigner")
+        if not apps_to_reschedule:
+            print(f"  Aucune app a reassigner")
             return
 
-        print(f"📋 Réassignation de {len(containers_to_reschedule)} container(s)")
-        for container in containers_to_reschedule:
-            success = self.reschedule_container(container['name'])
+        print(f"Reassignation de {len(apps_to_reschedule)} app(s)")
+        for app in apps_to_reschedule:
+            success = self.reschedule_app(app['name'])
             if success:
-                print(f"  ✓ {container['name']} (était sur {container['node']})")
+                print(f"  {app['name']} (etait sur {app['node']})")
             else:
-                print(f"  ✗ Échec pour {container['name']}")
+                print(f"  Echec pour {app['name']}")
 
     def run(self):
-        """Boucle de surveillance"""
         print("NODE CONTROLLER")
         print(f"API Server: {self.api_url}")
         print(f"Heartbeat timeout: {self.heartbeat_timeout}s")
         print()
 
-        try:
-            while True:
-                self.check_nodes()
-                time.sleep(10)
-        except KeyboardInterrupt:
-            print("\n\n👋 Arrêt\n")
+        while True:
+            self.check_nodes()
+            time.sleep(10)
 
 
 if __name__ == "__main__":
