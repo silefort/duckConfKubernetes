@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 
 etat_desire_FILE = Path("api_server/etat_desire.txt")
+NODES_STATE = {}
+HEARTBEAT_TIMEOUT = 15
 
 def read_etat_desire():
     content = etat_desire_FILE.read_text().strip()
@@ -43,6 +45,43 @@ def add_app():
     write_etat_desire(apps)
     print(f"  Ajout {app_name} dans l'état désiré")
     return jsonify({"app": app_name}), 201
+
+@app.route('/api/apps/<name>', methods=['PATCH'])
+def update_app(name):
+    data = request.get_json()
+    new_node = data.get('node')
+
+    apps = read_etat_desire()
+    for a in apps:
+        if a['name'] == name:
+            a['node'] = new_node
+            break
+    write_etat_desire(apps)
+    print(f"  Scheduling: {name} sur {new_node}")
+    return jsonify({"apps": apps})
+
+@app.route('/api/nodes/<node_name>/heartbeat', methods=['POST'])
+def heartbeat(node_name):
+    NODES_STATE[node_name] = datetime.now()
+    return jsonify({"status": "ok"})
+
+@app.route('/api/nodes', methods=['GET'])
+def get_nodes():
+    now = datetime.now()
+    timeout = timedelta(seconds=HEARTBEAT_TIMEOUT)
+    apps = read_etat_desire()
+
+    nodes = []
+    for name, ts in NODES_STATE.items():
+        node_apps = [a['name'] for a in apps if a.get('node') == name]
+        nodes.append({
+            "name": name,
+            "status": "down" if now - ts > timeout else "up",
+            "last_heartbeat": ts.isoformat(),
+            "apps": node_apps
+        })
+
+    return jsonify({"nodes": nodes})
 
 if __name__ == "__main__":
     import logging

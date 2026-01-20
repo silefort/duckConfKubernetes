@@ -19,7 +19,7 @@ def etat_observe():
 # état souhaité
 def etat_souhaite():
     try:
-        response = requests.get(f"{API_URL}/api/apps", timeout=2)
+        response = requests.get(f"{API_URL}/api/apps?node={NODE_NAME}", timeout=2)
         apps = [a['name'] for a in response.json().get("apps", [])]
         ETAT_SOUHAITE_FILE.write_text('\n'.join(apps))
         return set(apps)
@@ -61,13 +61,21 @@ def stop_app(app_name):
     ETAT_OBSERVE_FILE.write_text('\n'.join(applications))
     print(f"  Arrête: {app_name}")
 
+def envoyer_heartbeat():
+    try:
+        requests.post(f"{API_URL}/api/nodes/{NODE_NAME}/heartbeat", timeout=2)
+    except:
+        pass
+
 print(f"APP CONTROLLER - {NODE_NAME}")
-print(f"Etat desiré: {ETAT_SOUHAITE_FILE}")
-print(f"Etat en cours: {ETAT_OBSERVE_FILE}")
+print(f"Etat souhaité: {ETAT_SOUHAITE_FILE}")
+print(f"Etat observé: {ETAT_OBSERVE_FILE}")
 print()
 
 while True:
-    
+    # Envoie le heartbeat
+    envoyer_heartbeat()
+
     # Observe l'état Réel
     observe = etat_observe()
 

@@ -3,62 +3,47 @@ import time
 import os
 import requests
 
+API_URL = os.getenv("API_URL", "http://localhost:8081")
+NOEUDS = os.getenv("NODES", "node-1,node-2,node-3").split(",")
+noeud_courant = 0
 
-class Scheduler:
-    def __init__(self, api_url="http://localhost:8081", nodes=None):
-        self.api_url = api_url
-        self.nodes = nodes or ["node-1", "node-2", "node-3"]
-        self.current_node_index = 0
+# état observé
+def etat_observe():
+    response = requests.get(f"{API_URL}/api/apps")
+    return response.json().get("apps", [])
 
-    def get_next_node(self):
-        node = self.nodes[self.current_node_index]
-        self.current_node_index = (self.current_node_index + 1) % len(self.nodes)
-        return node
+# état souhaité (implicite: toutes les apps assignées à un noeud)
 
-    def get_apps(self):
-        response = requests.get(f"{self.api_url}/api/apps")
-        data = response.json()
-        return data.get("apps", [])
+# réconcilier l'état
+def reconcilie(apps):
+    global noeud_courant
+    non_assignees = [a for a in apps if not a.get('node')]
 
-    def update_app_node(self, app_name, node_name):
-        response = requests.patch(
-            f"{self.api_url}/api/apps/{app_name}",
-            json={"node": node_name}
-        )
-        return response.ok
+    if not non_assignees:
+        print("Rien à faire (toutes les apps sont assignées)")
+        return
 
-    def schedule(self):
-        apps = self.get_apps()
+    print(f"\nRECONCILIATION")
+    for app in non_assignees:
+        noeud = NOEUDS[noeud_courant]
+        noeud_courant = (noeud_courant + 1) % len(NOEUDS)
+        requests.patch(f"{API_URL}/api/apps/{app['name']}", json={"node": noeud})
+        print(f"  Assigne: {app['name']} -> {noeud}")
 
-        unscheduled = [a for a in apps if not a.get('node')]
+    print(f"Terminé\n")
 
-        if not unscheduled:
-            print("Toutes les apps sont schedulees")
-            return
+print("SCHEDULER")
+print(f"API Server: {API_URL}")
+print(f"Noeuds disponibles: {', '.join(NOEUDS)}")
+print()
 
-        print(f"\n{len(unscheduled)} app(s) a scheduler")
+while True:
 
-        for app in unscheduled:
-            node = self.get_next_node()
-            success = self.update_app_node(app['name'], node)
-            if success:
-                print(f"  {app['name']} -> {node}")
-            else:
-                print(f"  Echec pour {app['name']}")
+    # Observe l'état Réel
+    observe = etat_observe()
 
-    def run(self):
-        print("SCHEDULER")
-        print(f"API Server: {self.api_url}")
-        print(f"Noeuds disponibles: {', '.join(self.nodes)}")
-        print()
+    # État souhaité: toutes les apps assignées
 
-        while True:
-            self.schedule()
-            time.sleep(5)
-
-
-if __name__ == "__main__":
-    api_url = os.getenv("API_URL", "http://localhost:8081")
-    nodes = os.getenv("NODES", "node-1,node-2,node-3").split(",")
-    scheduler = Scheduler(api_url=api_url, nodes=nodes)
-    scheduler.run()
+    # Réconcilie les 2 états
+    reconcilie(observe)
+    time.sleep(5)

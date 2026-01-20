@@ -2,74 +2,52 @@
 import time
 import os
 import requests
-from datetime import datetime, timedelta
 
+API_URL = os.getenv("API_URL", "http://localhost:8081")
 
-class NodeController:
-    def __init__(self, api_url="http://localhost:8081", heartbeat_timeout=15):
-        self.api_url = api_url
-        self.heartbeat_timeout = heartbeat_timeout
+# état observé
+def etat_observe():
+    response = requests.get(f"{API_URL}/api/nodes")
+    return response.json().get("nodes", [])
 
-    def get_nodes(self):
-        response = requests.get(f"{self.api_url}/api/nodes")
-        data = response.json()
-        return data.get("nodes", [])
+# réconcilier l'état
+def reconcilie(noeuds):
+    noeuds_down = [n for n in noeuds if n['status'] == 'down']
 
-    def get_apps(self):
-        response = requests.get(f"{self.api_url}/api/apps")
-        data = response.json()
-        return data.get("apps", [])
+    if not noeuds_down:
+        print("Rien à faire (tous les noeuds sont UP)")
+        return
 
-    def reschedule_app(self, app_name):
-        response = requests.patch(
-            f"{self.api_url}/api/apps/{app_name}",
-            json={"node": None}
-        )
-        return response.ok
+    for noeud in noeuds_down:
+        print(f"Noeud DOWN détecté: {noeud['name']}")
 
-    def check_nodes(self):
-        nodes = self.get_nodes()
-        apps = self.get_apps()
-        down_nodes = []
-        for node in nodes:
-            if node['status'] == 'down':
-                down_nodes.append(node['name'])
-                print(f"Noeud DOWN detecte: {node['name']}")
+    apps_a_delier = []
+    for noeud in noeuds_down:
+        for app in noeud.get('apps', []):
+            apps_a_delier.append({"name": app, "node": noeud['name']})
 
-        if not down_nodes:
-            print("Tous les noeuds sont UP")
-            return
+    if not apps_a_delier:
+        print("  Aucune app à délier")
+        return
 
-        apps_to_reschedule = [
-            a for a in apps
-            if a.get('node') in down_nodes
-        ]
+    print(f"\nRECONCILIATION")
+    for app in apps_a_delier:
+        requests.patch(f"{API_URL}/api/apps/{app['name']}", json={"node": None})
+        print(f"  Délie: {app['name']} (était sur {app['node']})")
 
-        if not apps_to_reschedule:
-            print(f"  Aucune app a reassigner")
-            return
+    print(f"Terminé\n")
 
-        print(f"Reassignation de {len(apps_to_reschedule)} app(s)")
-        for app in apps_to_reschedule:
-            success = self.reschedule_app(app['name'])
-            if success:
-                print(f"  {app['name']} (etait sur {app['node']})")
-            else:
-                print(f"  Echec pour {app['name']}")
+print("NODE CONTROLLER")
+print(f"API Server: {API_URL}")
+print()
 
-    def run(self):
-        print("NODE CONTROLLER")
-        print(f"API Server: {self.api_url}")
-        print(f"Heartbeat timeout: {self.heartbeat_timeout}s")
-        print()
+while True:
 
-        while True:
-            self.check_nodes()
-            time.sleep(10)
+    # Observe l'état Réel
+    observe = etat_observe()
 
+    # État souhaité: aucune app sur un noeud "down"
 
-if __name__ == "__main__":
-    api_url = os.getenv("API_URL", "http://localhost:8081")
-    heartbeat_timeout = int(os.getenv("HEARTBEAT_TIMEOUT", "15"))
-    controller = NodeController(api_url=api_url, heartbeat_timeout=heartbeat_timeout)
-    controller.run()
+    # Réconcilie les 2 états
+    reconcilie(observe)
+    time.sleep(10)

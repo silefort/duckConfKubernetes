@@ -1,83 +1,26 @@
 version: '3.8'
 
+x-common: &common
+  build: .
+  volumes:
+    - .:/app
+  working_dir: /app
+
 services:
   api-server:
-    build: .
+    <<: *common
     command: python3 api_server.py
-    volumes:
-      - .:/app
     ports:
       - "8081:8081"
-    stdin_open: true
-    tty: true
-    working_dir: /app
-
-  scheduler:
-    build: .
-    command: python3 scheduler.py
-    volumes:
-      - .:/app
-    depends_on:
-      - api-server
     environment:
-      - API_URL=http://api-server:8081
-      - NODES=node-1,node-2,node-3
-    stdin_open: true
-    tty: true
-    working_dir: /app
-
-  node-controller:
-    build: .
-    command: python3 node_controller.py
-    volumes:
-      - .:/app
-    depends_on:
-      - api-server
-    environment:
-      - API_URL=http://api-server:8081
-      - HEARTBEAT_TIMEOUT=15
-    stdin_open: true
-    tty: true
-    working_dir: /app
+      - PYTHONUNBUFFERED=1
 
   node-1:
-    build: .
+    <<: *common
     command: python3 app_controller.py
-    volumes:
-      - .:/app
     depends_on:
       - api-server
     environment:
       - API_URL=http://api-server:8081
       - NODE_NAME=node-1
-    stdin_open: true
-    tty: true
-    working_dir: /app
-
-  node-2:
-    build: .
-    command: python3 app_controller.py
-    volumes:
-      - .:/app
-    depends_on:
-      - api-server
-    environment:
-      - API_URL=http://api-server:8081
-      - NODE_NAME=node-2
-    stdin_open: true
-    tty: true
-    working_dir: /app
-
-  node-3:
-    build: .
-    command: python3 app_controller.py
-    volumes:
-      - .:/app
-    depends_on:
-      - api-server
-    environment:
-      - API_URL=http://api-server:8081
-      - NODE_NAME=node-3
-    stdin_open: true
-    tty: true
-    working_dir: /app
+      - PYTHONUNBUFFERED=1

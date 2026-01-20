@@ -35,8 +35,8 @@ run-multi:
 	$(DOCKER_COMPOSE) -f docker-compose.multi.yml up
 
 stop:
-	-$(DOCKER_COMPOSE) down 2>/dev/null
-	-$(DOCKER_COMPOSE) -f docker-compose.multi.yml down 2>/dev/null
+	-$(DOCKER_COMPOSE) down -t 0 2>/dev/null
+	-$(DOCKER_COMPOSE) -f docker-compose.multi.yml down -t 0 2>/dev/null
 	@rm -f nodes/node-1_running.txt nodes/node-2_running.txt nodes/node-3_running.txt
 
 restart: stop run
