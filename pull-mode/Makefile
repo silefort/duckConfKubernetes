@@ -46,13 +46,20 @@ create_app:
 		-d '{"name": "$(filter-out $@,$(MAKECMDGOALS))"}' | python3 -m json.tool
 
 stop_node:
+	@cp nodes/$(filter-out $@,$(MAKECMDGOALS))_observe.txt nodes/$(filter-out $@,$(MAKECMDGOALS))_observe.txt.paused 2>/dev/null || true
+	@echo "" > nodes/$(filter-out $@,$(MAKECMDGOALS))_observe.txt
 	$(DOCKER) pause pull-mode_$(filter-out $@,$(MAKECMDGOALS))_1
 
 start_node:
+	mv nodes/$(filter-out $@,$(MAKECMDGOALS))_observe.txt.paused nodes/$(filter-out $@,$(MAKECMDGOALS))_observe.txt 2>/dev/null || true
+	@rm -f nodes/$(filter-out $@,$(MAKECMDGOALS))_observe.txt.paused
 	$(DOCKER) unpause pull-mode_$(filter-out $@,$(MAKECMDGOALS))_1
 
 watch:
-	watch -n 1 'for f in nodes/*.txt; do echo "=== $$f ==="; cat "$$f"; echo; done'
+	watch -n 1 'echo "=== api_server/etat_desire.txt ==="; cat api_server/etat_desire.txt 2>/dev/null; echo; for f in nodes/*observe.txt; do echo "=== $$f ==="; cat "$$f"; echo; done'
+
+clean:
+	@rm -f nodes/*.txt nodes/*.txt.paused api_server/*.txt
 
 %:
 	@:

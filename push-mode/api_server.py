@@ -16,7 +16,7 @@ def executer_ssh(node, cmd):
     """Se connecte a un noeud en ssh et execute une commande"""
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(node, port=22, username="root", password="root")
+    ssh.connect(node, port=22, username="root", password="root", timeout=5)
     _, stdout, _ = ssh.exec_command(cmd)
     result = stdout.read().decode().strip()
     ssh.close()

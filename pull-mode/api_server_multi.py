@@ -57,7 +57,6 @@ def update_app(name):
             a['node'] = new_node
             break
     write_etat_desire(apps)
-    print(f"  Scheduling: {name} sur {new_node}")
     return jsonify({"apps": apps})
 
 @app.route('/api/nodes/<node_name>/heartbeat', methods=['POST'])
