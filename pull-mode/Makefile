@@ -6,11 +6,11 @@ DOCKER_COMPOSE ?= podman-compose
 help:
 	@echo "Targets disponibles :"
 	@echo "  build        - Build les images Docker"
-	@echo "  run          - Lance l'API server avec 1 nœud"
-	@echo "  run-multi    - Lance l'API server avec 3 nœuds"
+	@echo "  run-mono     - Lance l'API server avec 1 nœud"
+	@echo "  run          - Lance l'API server avec 3 nœuds"
 	@echo "  stop         - Arrête tous les services"
-	@echo "  restart      - Redémarre avec 1 nœud"
-	@echo "  restart-multi- Redémarre avec 3 nœuds"
+	@echo "  restart-mono - Redémarre avec 1 nœud"
+	@echo "  restart      - Redémarre avec 3 nœuds"
 	@echo "  create_app   - Crée une app (ex: make create_app duckconf-1)"
 	@echo "  stop_node    - Pause un nœud (ex: make stop_node app-1)"
 	@echo "  start_node   - Reprend un nœud (ex: make start_node app-1)"
@@ -20,12 +20,12 @@ help:
 build:
 	$(DOCKER_COMPOSE) build
 
-run:
+run-mono:
 	-$(DOCKER_COMPOSE) down -v --remove-orphans 2>/dev/null
 	-$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "name=pull-mode") 2>/dev/null
 	$(DOCKER_COMPOSE) up
 
-run-multi:
+run:
 	-$(DOCKER_COMPOSE) -f docker-compose.multi.yml down -v --remove-orphans 2>/dev/null
 	-$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "name=pull-mode") 2>/dev/null
 	$(DOCKER_COMPOSE) -f docker-compose.multi.yml up
@@ -36,8 +36,8 @@ stop:
 	@rm -f nodes/node-1_running.txt nodes/node-2_running.txt nodes/node-3_running.txt
 	@rm -f api_server/desired_state.txt
 
+restart-mono: stop run-mono
 restart: stop run
-restart-multi: stop run-multi
 
 create_app:
 	@echo 'curl -X POST http://localhost:8081/api/apps -H "Content-Type: application/json" -d '"'"'{"name": "$(filter-out $@,$(MAKECMDGOALS))"}'"'"
