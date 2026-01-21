@@ -51,12 +51,12 @@ start_app:
 stop_node:
 	@cp nodes/$(filter-out $@,$(MAKECMDGOALS))_running.txt nodes/$(filter-out $@,$(MAKECMDGOALS))_running.txt.paused 2>/dev/null || true
 	@echo "" > nodes/$(filter-out $@,$(MAKECMDGOALS))_running.txt
-	$(DOCKER) pause pull-mode_$(filter-out $@,$(MAKECMDGOALS))_1
+	$(DOCKER) pause push-mode_$(filter-out $@,$(MAKECMDGOALS))_1
 
 start_node:
 	mv nodes/$(filter-out $@,$(MAKECMDGOALS))_running.txt.paused nodes/$(filter-out $@,$(MAKECMDGOALS))_running.txt 2>/dev/null || true
 	@rm -f nodes/$(filter-out $@,$(MAKECMDGOALS))_running.txt.paused
-	$(DOCKER) unpause pull-mode_$(filter-out $@,$(MAKECMDGOALS))_1
+	$(DOCKER) unpause push-mode_$(filter-out $@,$(MAKECMDGOALS))_1
 
 watch:
 	watch -n 1 'for f in nodes/*.txt; do echo "=== $$f ==="; cat "$$f"; echo; done'

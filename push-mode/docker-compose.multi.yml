@@ -1,0 +1,40 @@
+version: '3.8'
+
+x-node: &node-template
+  build:
+    context: .
+    dockerfile: Dockerfile.node
+  volumes:
+    - .:/app
+  working_dir: /app
+
+services:
+  api-server:
+    build: .
+    command: python3 api_server_multi.py
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - node-1
+      - node-2
+      - node-3
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  node-1:
+    <<: *node-template
+    environment:
+      - NODE_NAME=node-1
+
+  node-2:
+    <<: *node-template
+    environment:
+      - NODE_NAME=node-2
+
+  node-3:
+    <<: *node-template
+    environment:
+      - NODE_NAME=node-3
