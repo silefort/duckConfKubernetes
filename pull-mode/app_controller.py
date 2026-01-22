@@ -9,14 +9,14 @@ NODE_NAME = os.getenv("NODE_NAME", "node-1")
 ETAT_SOUHAITE_FILE = Path(f"nodes/{NODE_NAME}_souhaite.txt")
 ETAT_OBSERVE_FILE = Path(f"nodes/{NODE_NAME}_observe.txt")
 
-# état observé
+# état observé : récupéré dans le fichier .txt local
 def etat_observe():
     if not ETAT_OBSERVE_FILE.exists():
         return set()
     content = ETAT_OBSERVE_FILE.read_text().strip()
     return set(content.split('\n')) if content else set()
 
-# état souhaité
+# état souhaité : récupéré sur l'API Server
 def etat_souhaite():
     try:
         response = requests.get(f"{API_URL}/api/apps", timeout=2)
@@ -67,7 +67,6 @@ print(f"Etat en cours: {ETAT_OBSERVE_FILE}")
 print()
 
 while True:
-    
     # Observe l'état Réel
     observe = etat_observe()
 

@@ -5,13 +5,16 @@ import requests
 
 API_URL = os.getenv("API_URL", "http://localhost:8081")
 
-# état observé
+# état observé : récupère la liste des noeuds et de leur applis associées
 def etat_observe():
     response = requests.get(f"{API_URL}/api/nodes")
     return response.json().get("nodes", [])
 
+# État souhaité implicite: aucune app sur un noeud "down"
+
 # réconcilier l'état
 def reconcilie(noeuds):
+    # récupère la liste des noeuds
     noeuds_down = [n for n in noeuds if n['status'] == 'down']
 
     if not noeuds_down:
