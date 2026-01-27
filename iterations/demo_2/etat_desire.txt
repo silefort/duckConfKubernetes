@@ -1,0 +1,9 @@
+nginx1:node-1
+nginx2:node-2
+nginx3:node-3
+nginx4:node-1
+nginx5:node-2
+nginx6:node-3
+nginx7:node-1
+nginx8:node-2
+nginx9:node-3

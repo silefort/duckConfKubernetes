@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  controller:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+    command: python app_controller.py
+    depends_on:
+      - node-1
+      - node-2
+      - node-3
+    networks:
+      - pull-net
+
+  node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    hostname: node-1
+    volumes:
+      - ./nodes:/app/nodes
+    networks:
+      - pull-net
+
+  node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    hostname: node-2
+    volumes:
+      - ./nodes:/app/nodes
+    networks:
+      - pull-net
+
+  node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    hostname: node-3
+    volumes:
+      - ./nodes:/app/nodes
+    networks:
+      - pull-net
+
+networks:
+  pull-net:
+    driver: bridge

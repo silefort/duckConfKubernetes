@@ -1,0 +1,10 @@
+# Fichiers d'état générés
+nodes/node*
+desired_state.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
