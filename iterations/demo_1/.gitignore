@@ -1,0 +1,9 @@
+# Fichiers d'état générés
+nodes/node*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python

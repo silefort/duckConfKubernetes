@@ -68,13 +68,13 @@ cd pull-mode
 docker-compose up -d
 
 # Ajouter un container (déclaration)
-curl -X POST http://localhost:8080/api/containers \
+curl -X POST http://localhost:8081/api/containers \
   -H "Content-Type: application/json" \
   -d '{"name": "nginx"}'
 
 # Ajouter x containers
 for i in {1..9}; do 
-  curl -X POST http://localhost:8080/api/containers \
+  curl -X POST http://localhost:8081/api/containers \
     -H "Content-Type: application/json" \
     -d "{\"name\": \"nginx$i\"}"; 
 done
@@ -84,7 +84,7 @@ done
 # 2. Kubelet le démarre (5s)
 
 # Lister
-curl http://localhost:8080/api/containers
+curl http://localhost:8081/api/containers
 ```
 
 ## 📁 Structure du projet

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+desired_state.txt
+nodes/*_running.txt
+!nodes/.gitkeep
