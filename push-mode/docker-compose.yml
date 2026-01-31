@@ -1,5 +1,13 @@
 version: '3.8'
 
+x-node: &node-template
+  build: .
+  command: bash -c "ln -sf /var/run/podman.sock /var/run/docker.sock && /usr/sbin/sshd && echo NODE $$NODE_NAME demarre && sleep infinity"
+  volumes:
+    - .:/app
+    - ${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock
+  working_dir: /app
+
 services:
   api-server:
     build: .
@@ -10,16 +18,23 @@ services:
       - "8080:8080"
     depends_on:
       - node-1
+      - node-2
+      - node-3
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
 
   node-1:
-    build:
-      context: .
-      dockerfile: Dockerfile.node
-    volumes:
-      - .:/app
-    working_dir: /app
+    <<: *node-template
     environment:
       - NODE_NAME=node-1
+
+  node-2:
+    <<: *node-template
+    environment:
+      - NODE_NAME=node-2
+
+  node-3:
+    <<: *node-template
+    environment:
+      - NODE_NAME=node-3
