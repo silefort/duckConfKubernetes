@@ -1,0 +1,57 @@
+version: '3.8'
+
+x-node: &node-template
+  build: .
+  command: >-
+    bash -c "
+    ln -sf /var/run/podman.sock /var/run/docker.sock &&
+    echo $$NODE_NAME > /etc/node_name &&
+    /usr/sbin/sshd &&
+    echo NODE $$NODE_NAME demarre &&
+    sleep infinity
+    "
+  volumes:
+    - .:/app
+    - ${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock
+  working_dir: /app
+
+services:
+  api-server:
+    build: .
+    command: >-
+      sh -c "
+      > /app/desired_state.csv &&
+      echo 'Démarrage de la boucle de contrôle et de l API Server' &&
+      python3 -W ignore -m app.boucle_de_controle &
+      python3 -W ignore -m app.api_server
+      "
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - node-1
+      - node-2
+      - node-3
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONWARNINGS=ignore
+
+  node-1:
+    <<: *node-template
+    hostname: node-1
+    environment:
+      - NODE_NAME=node-1
+
+  node-2:
+    <<: *node-template
+    hostname: node-2
+    environment:
+      - NODE_NAME=node-2
+
+  node-3:
+    <<: *node-template
+    hostname: node-3
+    environment:
+      - NODE_NAME=node-3

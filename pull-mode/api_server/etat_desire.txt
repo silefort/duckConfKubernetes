@@ -1,0 +1,4 @@
+duck-1:node-2
+duck-2:node-2
+duck-3:node-3
+duck-4:node-3
