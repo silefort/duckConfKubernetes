@@ -2,66 +2,78 @@
 DOCKER ?= podman
 DOCKER_COMPOSE ?= podman-compose
 
-.PHONY: help build run stop restart stop_node start_node start_container list_containers stop_container clean_containers ps
+.PHONY: help build run stop restart stop_node start_node start_app list_apps clean_apps ps kill_app ssh
 
 help:
 	@echo "Kubernetes Simulator - Push Mode"
 	@echo ""
-	@echo "  make build                        - Build les images"
-	@echo "  make run                          - Demarre le cluster (3 noeuds)"
+	@echo "  make run                          - Demarre le cluster"
 	@echo "  make stop                         - Arrete le cluster"
 	@echo "  make restart                      - Redemarre le cluster"
-	@echo "  make stop_node <node>             - Arrete un noeud"
-	@echo "  make start_node <node>            - Demarre un noeud"
+	@echo "  make logs                         - Affiche les logs des containers"
 	@echo ""
-	@echo "Containers:"
-	@echo "  make start_container <image>      - Demarre un container (via API)"
-	@echo "  make list_containers              - Liste les containers (via API)"
-	@echo "  make stop_container <name>        - Arrete un container (via API)"
-	@echo "  make clean_containers             - Supprime tous les containers duckconf-*"
-	@echo "  make ps                           - Liste les containers duckconf-* (via podman)"
+	@echo "  make start_app <image>      			 - Demarre un app"
+	@echo "  make clean_apps             			 - Supprime tous les apps"
+	@echo "  make ps                           - Liste les apps (via podman)"
+	@echo ""
+	@echo "  make stop_node <node>             - Pause un noeud"
+	@echo "  make start_node <node>            - Unpause un noeud"
+	@echo "  make ssh <node>                   - Se connecte a un noeud"
+	@echo ""
+	@echo "  make kill_app node=<NODE> app=<NAME>"
+	@echo "    Ex: make kill_app node=node-1 app=app-1"
+	@echo "    (Utilisez 'make ps' pour voir les valeurs NODE et NAME)"
 	@echo ""
 
 build:
 	$(DOCKER_COMPOSE) build
 
 run:
-	-$(DOCKER_COMPOSE) down -v --remove-orphans 2>/dev/null
-	-$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "name=push-mode") 2>/dev/null
+	-$(DOCKER_COMPOSE) down -t 0 -v --remove-orphans 2>/dev/null
 	$(DOCKER_COMPOSE) up
 
 stop:
-	-$(DOCKER_COMPOSE) down -t 0 2>/dev/null
+	-$(DOCKER) ps -a --filter "status=paused" -q | xargs -r $(DOCKER) unpause 2>/dev/null
+	-$(DOCKER_COMPOSE) down -t 0 -v --remove-orphans 2>/dev/null
+	-$(DOCKER) ps -aq --filter "name=duckconf-" | xargs -r $(DOCKER) rm -f 2>/dev/null || true
+	-$(DOCKER) ps -aq --filter "name=push-mode" | xargs -r $(DOCKER) rm -f 2>/dev/null || true
 
 restart: stop run
 
-stop_node:
-	$(DOCKER) pause push-mode_$(filter-out $@,$(MAKECMDGOALS))_1
+logs:
+	$(DOCKER_COMPOSE) logs -f
 
-start_node:
-	$(DOCKER) unpause push-mode_$(filter-out $@,$(MAKECMDGOALS))_1
-
-# Containers (via API server)
-start_container:
-	@curl -s -X POST http://localhost:8080/container/start \
+start_app:
+	@curl -s -X POST http://localhost:8080/app/start \
 		-H "Content-Type: application/json" \
 		-d '{"image": "$(filter-out $@,$(MAKECMDGOALS))"}' | python3 -m json.tool
 
-list_containers:
-	@curl -s http://localhost:8080/container/list | python3 -m json.tool
-
-stop_container:
-	@curl -s -X POST http://localhost:8080/container/stop \
-		-H "Content-Type: application/json" \
-		-d '{"name": "$(filter-out $@,$(MAKECMDGOALS))"}' | python3 -m json.tool
-
-clean_containers:
-	@for node in node-1 node-2 node-3; do \
-		$(DOCKER) exec push-mode_$${node}_1 sh -c 'docker ps -aq --filter "name=duckconf-" | xargs -r docker rm -f' 2>/dev/null || true; \
-	done
+clean_apps:
+	@$(DOCKER) ps -aq --filter "name=duckconf-" | xargs -r $(DOCKER) rm -f 2>/dev/null || true
 
 ps:
-	@$(DOCKER) ps --filter "name=duckconf-" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+	@printf "%-15s %-15s %s\n" "NAME" "NODE" "STATUS"
+	@$(DOCKER) ps --filter "name=duckconf-" --format "{{.Names}}\t{{.Status}}" | \
+		sed 's/duckconf-\(node-[0-9]\)-/\1\t/' | \
+		awk -F'\t' '{printf "%-15s %-15s %s\n", $$2, $$1, $$3}'
+
+stop_node:
+	@echo "Arrêt des apps sur $(filter-out $@,$(MAKECMDGOALS))..."
+	@$(DOCKER) ps -q --filter "label=node=$(filter-out $@,$(MAKECMDGOALS))" | xargs -r $(DOCKER) stop
+	@echo "Pause du nœud $(filter-out $@,$(MAKECMDGOALS))..."
+	@$(DOCKER) pause push-mode_$(filter-out $@,$(MAKECMDGOALS))_1
+
+start_node:
+	@echo "Redémarrage du nœud $(filter-out $@,$(MAKECMDGOALS))..."
+	@$(DOCKER) unpause push-mode_$(filter-out $@,$(MAKECMDGOALS))_1
+	@echo "Redémarrage des apps sur $(filter-out $@,$(MAKECMDGOALS))..."
+	@$(DOCKER) ps -a -q --filter "label=node=$(filter-out $@,$(MAKECMDGOALS))" --filter "status=exited" | xargs -r $(DOCKER) start
+
+ssh:
+	@$(DOCKER) exec -it push-mode_$(filter-out $@,$(MAKECMDGOALS))_1 /bin/bash
+
+kill_app:
+	@podman exec -it push-mode_$(node)_1 docker rm -f duckconf-$(node)-$(app)
 
 %:
 	@:

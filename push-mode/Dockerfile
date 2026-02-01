@@ -6,7 +6,12 @@ RUN apt-get update && \
 
 # Installation Docker CLI (fonctionne avec le socket Podman)
 RUN curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-24.0.7.tgz | \
-    tar xz --strip-components=1 -C /usr/local/bin docker/docker
+    tar xz --strip-components=1 -C /usr/local/bin docker/docker && \
+    mv /usr/local/bin/docker /usr/local/bin/docker.orig
+
+# Installation du wrapper docker
+COPY docker-wrapper.sh /usr/local/bin/docker
+RUN chmod +x /usr/local/bin/docker
 
 # Configuration SSH
 RUN mkdir -p /var/run/sshd && \
