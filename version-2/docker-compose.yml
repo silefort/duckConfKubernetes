@@ -1,0 +1,83 @@
+version: '3.8'
+
+x-node: &node-template
+  build: .
+  command: >-
+    bash -c "
+    ln -sf /var/run/podman.sock /var/run/docker.sock &&
+    python -m app.app_controller
+    "
+  volumes:
+    - .:/app
+    - ${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock
+  working_dir: /app
+  environment:
+    - PYTHONUNBUFFERED=1
+  labels:
+    - "type=node"
+  depends_on:
+    - api-server
+
+services:
+  api-server:
+    build: .
+    hostname: api-server
+    command: python -m app.api_server
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "type=control-plane"
+
+  scheduler:
+    build: .
+    hostname: scheduler
+    command: python -m app.scheduler
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "type=control-plane"
+    depends_on:
+      - api-server
+
+  node-controller:
+    build: .
+    hostname: node-controller
+    command: python -m app.node_controller
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "type=control-plane"
+    depends_on:
+      - api-server
+
+  node-1:
+    <<: *node-template
+    hostname: node-1
+    environment:
+      - NODE_NAME=node-1
+      - PYTHONUNBUFFERED=1
+
+  node-2:
+    <<: *node-template
+    hostname: node-2
+    environment:
+      - NODE_NAME=node-2
+      - PYTHONUNBUFFERED=1
+
+  node-3:
+    <<: *node-template
+    hostname: node-3
+    environment:
+      - NODE_NAME=node-3
+      - PYTHONUNBUFFERED=1
