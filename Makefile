@@ -4,7 +4,7 @@ VERSION ?= 2
 
 COMPOSE_FLAGS = -f version-$(VERSION)/docker-compose.yml -p version-$(VERSION)
 
-.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill apps_clean apps_list node_stop node_start node_ssh api_stop api_start watch _watch_display delete_all tmux
+.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill apps_clean apps_list node_stop node_start node_ssh api_stop api_start watch viddy _watch_display delete_all tmux
 
 help:
 	@echo "Commandes disponibles (VERSION=<0|1|2>):"
@@ -23,6 +23,7 @@ help:
 	@echo "  make api_stop                            - Pause l'api server (version-2)"
 	@echo "  make api_start                           - Unpause l'api server (version-2)"
 	@echo "  make watch                               - Watch l'état du cluster (version-2)"
+	@echo "  make viddy                               - Watch l'état avec viddy (diff coloré)"
 	@echo "  make tmux                                - Ouvre une session tmux (logs + cmds)"
 	@echo "  make delete_all                          - Supprime tous les containers"
 
@@ -102,6 +103,9 @@ api_start:
 watch:
 	watch -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"
 
+viddy:
+	viddy -d -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"
+
 _watch_display:
 	@if [ "$(VERSION)" = "1" ] || [ "$(VERSION)" = "2" ]; then \
 		echo "=== ÉTAT DÉSIRÉ (apps.json) ===" ; \
@@ -114,7 +118,16 @@ _watch_display:
 		echo ; \
 	fi ; \
 	echo "=== APPS EN COURS ===" ; \
-	$(MAKE) --no-print-directory apps_list
+	for node in node-1 node-2 node-3; do \
+		echo ; \
+		echo "**$$node**" ; \
+		apps=$$($(DOCKER) ps --filter "label=type=app" --filter "label=node=$$node" --format "  {{.Names}}\t{{.RunningFor}}"); \
+		if [ -n "$$apps" ]; then \
+			echo "$$apps"; \
+		else \
+			echo "  (aucune app)"; \
+		fi; \
+	done
 
 tmux:
 	@bash setup-tmux.sh $(VERSION)
