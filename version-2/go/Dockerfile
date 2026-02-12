@@ -1,0 +1,22 @@
+# Build stage
+FROM docker.io/library/golang:1.21-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+RUN go mod download
+
+COPY main.go ./
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o scheduler .
+
+# Runtime stage
+FROM docker.io/library/alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+COPY --from=builder /app/scheduler .
+
+CMD ["./scheduler"]

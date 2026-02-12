@@ -1,6 +1,9 @@
 # Fichiers d'état générés
 nodes/node*
 
+# Configuration locale
+.env
+
 # Python
 __pycache__/
 *.py[cod]

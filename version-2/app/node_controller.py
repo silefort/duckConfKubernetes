@@ -22,7 +22,7 @@ while True:
         nodes = {}
     log(f"01. CAPTEUR : heartbeats = {nodes}")
 
-    # --- 02. CONSIGNE - Implicite, aucune application ne doit être sur un noeud considéré comme "down"---
+    # --- 02. ETAT_DESIRE - Implicite, aucune application ne doit être sur un noeud considéré comme "down"---
 
     
     # --- 03. COMPARATEUR - Identifier les noeuds down ---

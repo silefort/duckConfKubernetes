@@ -8,11 +8,11 @@ COMPOSE_FLAGS = -f version-$(VERSION)/docker-compose.yml -p version-$(VERSION)
 
 help:
 	@echo "Commandes disponibles (VERSION=<0|1|2>):"
-	@echo "  make cluster_start                       - Demarre le cluster"
+	@echo "  make cluster_start - Demarre le cluster"
 	@echo "  make cluster_stop                        - Arrete le cluster"
 	@echo "  make cluster_restart                     - Redemarre le cluster"
 	@echo "  make cluster_list                        - Liste les containers d'infrastructure"
-	@echo "  make app_start IMAGE=<image>             - Demarre un app (version-0)"
+	@echo "  make app_start NAME=<name> IMAGE=<image> - Demarre un app (version-0)"
 	@echo "  make app_apply NAME=<name> IMAGE=<image> - Décle un app (version-1/2)"
 	@echo "  make app_kill NAME=<name>                 - Kill une app spécifique"
 	@echo "  make apps_clean                          - Supprime tous les apps"
@@ -30,7 +30,7 @@ build:
 	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) build
 
 cluster_start:
-	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) up -d
+	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) up
 
 cluster_stop:
 	@$(DOCKER) unpause $$($(DOCKER) ps -aq --filter status=paused) 2>/dev/null || true
@@ -46,10 +46,11 @@ cluster_list:
 	@$(DOCKER) ps -a --format "{{.Names}}\t{{.Labels.type}}" | grep -E "node|control-plane" | awk '{ print $1 }' | sort
 
 app_start:
-	@test -n "$(IMAGE)" || (echo "Erreur: IMAGE non défini. Usage: make app_start IMAGE=<image>" && false)
+	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_start NAME=<name> IMAGE=<image>" && false)
+	@test -n "$(IMAGE)" || (echo "Erreur: IMAGE non défini. Usage: make app_start NAME=<name> IMAGE=<image>" && false)
 	@curl -s -X POST http://localhost:8080/app/start \
 		-H "Content-Type: application/json" \
-		-d '{"image": "$(IMAGE)"}' | python3 -m json.tool
+		-d '{"name": "$(NAME)", "image": "$(IMAGE)"}' | python3 -m json.tool
 
 app_apply:
 	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_apply NAME=<name> IMAGE=<image>" && false)

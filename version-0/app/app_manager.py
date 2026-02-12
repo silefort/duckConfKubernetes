@@ -13,11 +13,11 @@ compteur_node = 0
 @app.route('/app/start', methods=['POST'])
 def demarrer_app():
     global compteur_node
+    nom = request.json['name']
     image = request.json['image']
     node = NODES[compteur_node % len(NODES)]
     compteur_node += 1
 
-    nom = f"app-{uuid.uuid4().hex[:8]}"
     ssh(node, f"docker run -d --name {nom} {image}")
 
     log(f"Démarrage de l'application {nom} sur {node}")

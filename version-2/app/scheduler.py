@@ -23,8 +23,8 @@ while True:
         apps_sans_noeud = {}
     log(f"01. CAPTEUR : apps en attente de scheduling = {apps_sans_noeud}")
 
-    # --- 02. CONSIGNE - Implicite : toutes les applications doivent avoir un noeud d'assigné ---
-    log(f"02. CONSIGNE : Implicite : toutes les applications doivent avoir un noeud d'assigné")
+    # --- 02. ETAT_DESIRE - Implicite : toutes les applications doivent avoir un noeud d'assigné ---
+    log(f"02. ETAT_DESIRE : Implicite : toutes les applications doivent avoir un noeud d'assigné")
 
     # --- 03. COMPARATEUR - Identifier l'écart ---
     apps_a_assigner = list(apps_sans_noeud.keys())

@@ -25,11 +25,11 @@ while True:
                 apps_actuelles[container] = node
     log(f"01. CAPTEUR : applications observées sur tous les noeuds : {pprint.pformat(apps_actuelles)}")
 
-    log("2. CONSIGNE - Lire l'état désiré")
+    log("2. ETAT_DESIRE - Lire l'état désiré")
     with open(APPS_FILE, 'r') as f:
         apps = json.load(f)
     apps_voulues = {nom: info["image"] for nom, info in apps.items()}
-    log(f"02. CONSIGNE : état désiré par l'utilisateur : {pprint.pformat(apps_voulues)}")
+    log(f"02. ETAT_DESIRE : état désiré par l'utilisateur : {pprint.pformat(apps_voulues)}")
 
     log("3. COMPARATEUR - Identifier l'écart")
     apps_a_demarrer = set(apps_voulues.keys()) - set(apps_actuelles.keys())

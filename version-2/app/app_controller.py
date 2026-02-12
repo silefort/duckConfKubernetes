@@ -35,13 +35,13 @@ while True:
     log(f"01. CAPTEUR : applications en cours d'exécution : {apps_actuelles}")
 
 
-    # --- 02. CONSIGNE - Lire l'état désiré pour ce noeud ---
+    # --- 02. ETAT_DESIRE - Lire l'état désiré pour ce noeud ---
     try:
         response = get(f"{API_SERVER}/apps?nodeName={NODE_NAME}")
         apps_voulues = {app: info["image"] for app, info in response.items()}
     except:
         log("API server non disponible, utilisation du cache local")
-    log(f"02. CONSIGNE : état désiré par l'utilisateur : {apps_voulues}")
+    log(f"02. ETAT_DESIRE : état désiré par l'utilisateur : {apps_voulues}")
 
 
     # --- 03. COMPARATEUR - Identifier l'écart ---
