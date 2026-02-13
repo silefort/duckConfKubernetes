@@ -4,7 +4,7 @@ VERSION ?= 2
 
 COMPOSE_FLAGS = -f version-$(VERSION)/docker-compose.yml -p version-$(VERSION)
 
-.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill apps_clean apps_list node_stop node_start node_ssh api_stop api_start watch viddy _watch_display delete_all tmux
+.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux
 
 help:
 	@echo "Commandes disponibles (VERSION=<0|1|2>):"
@@ -20,6 +20,7 @@ help:
 	@echo "  make node_stop NODE=<node>               - Pause un noeud"
 	@echo "  make node_start NODE=<node>              - Unpause un noeud"
 	@echo "  make node_ssh NODE=<node>                - Se connecte a un noeud"
+	@echo "  make logs [SERVICE=<service>]            - Affiche les logs (tous avec couleurs ou d'un service)"
 	@echo "  make api_stop                            - Pause l'api server (version-2)"
 	@echo "  make api_start                           - Unpause l'api server (version-2)"
 	@echo "  make watch                               - Watch l'état du cluster (version-2)"
@@ -45,6 +46,57 @@ cluster_list:
 	@echo "=============================="
 	@echo "=============================="
 	@$(DOCKER) ps -a --format "{{.Names}}\t{{.Labels.type}}" | grep -E "node|control-plane" | awk '{ print $1 }' | sort
+
+logs:
+	@RED='\033[0;31m'; \
+	GREEN='\033[0;32m'; \
+	YELLOW='\033[0;33m'; \
+	BLUE='\033[0;34m'; \
+	MAGENTA='\033[0;35m'; \
+	CYAN='\033[0;36m'; \
+	BRIGHT_MAGENTA='\033[1;35m'; \
+	BRIGHT_CYAN='\033[1;36m'; \
+	NC='\033[0m'; \
+	get_color() { \
+		case "$$1" in \
+			app-manager) echo "$$BLUE" ;; \
+			app-controller) echo "$$CYAN" ;; \
+			api-server) echo "$$MAGENTA" ;; \
+			node-binder) echo "$$BRIGHT_MAGENTA" ;; \
+			node-controller) echo "$$BRIGHT_CYAN" ;; \
+			node-1) echo "$$RED" ;; \
+			node-2) echo "$$GREEN" ;; \
+			node-3) echo "$$YELLOW" ;; \
+			*) echo "$$NC" ;; \
+		esac; \
+	}; \
+	colorize_logs() { \
+		local service=$$1; \
+		local color=$$2; \
+		if $(DOCKER) ps --format '{{.Names}}' | grep -q "^version-$(VERSION)_$${service}_1$$"; then \
+			$(DOCKER) logs -f --tail 20 "version-$(VERSION)_$${service}_1" 2>&1 | while IFS= read -r line; do \
+				printf "%b[%s]%b %s\n" "$${color}" "$${service}" "$${NC}" "$$line"; \
+			done; \
+		fi; \
+	}; \
+	if [ -n "$(SERVICE)" ]; then \
+		services=$$(echo "$(SERVICE)" | tr ',' ' '); \
+		for service in $$services; do \
+			color=$$(get_color "$$service"); \
+			colorize_logs "$$service" "$$color" & \
+		done; \
+		wait; \
+	else \
+		colorize_logs "app-manager" "$$BLUE" & \
+		colorize_logs "app-controller" "$$CYAN" & \
+		colorize_logs "api-server" "$$MAGENTA" & \
+		colorize_logs "node-binder" "$$BRIGHT_MAGENTA" & \
+		colorize_logs "node-controller" "$$BRIGHT_CYAN" & \
+		colorize_logs "node-1" "$$RED" & \
+		colorize_logs "node-2" "$$GREEN" & \
+		colorize_logs "node-3" "$$YELLOW" & \
+		wait; \
+	fi
 
 app_start:
 	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_start NAME=<name> IMAGE=<image>" && false)

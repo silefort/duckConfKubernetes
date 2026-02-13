@@ -25,7 +25,7 @@ type App struct {
 }
 
 func log(message string) {
-	fmt.Printf("[scheduler] %s\n", message)
+	fmt.Printf("[node-binder] %s\n", message)
 }
 
 func getApps(nodeName string) (map[string]App, error) {
@@ -79,7 +79,7 @@ func putApp(appName, nodeName string) error {
 func main() {
 	for {
 		log("======================================================")
-		log("SCHEDULER - BOUCLE DE CONTRÔLE")
+		log("NODE BINDER - BOUCLE DE CONTRÔLE")
 		log("======================================================")
 
 		// --- 01. CAPTEUR - Récupérer les applications qui n'ont pas de node assignés
@@ -92,7 +92,7 @@ func main() {
 			log(fmt.Sprintf("API server non disponible: %v", err))
 			appsSansNoeud = make(map[string]App)
 		}
-		log(fmt.Sprintf("01. CAPTEUR : apps en attente de scheduling = %v", appsSansNoeud))
+		log(fmt.Sprintf("01. CAPTEUR : apps en attente de binding = %v", appsSansNoeud))
 
 		// --- 02. ETAT_DESIRE - Implicite : toutes les applications doivent avoir un noeud d'assigné ---
 		log("02. ETAT_DESIRE : Implicite : toutes les applications doivent avoir un noeud d'assigné")
@@ -102,7 +102,7 @@ func main() {
 		for appName := range appsSansNoeud {
 			appsAAssigner = append(appsAAssigner, appName)
 		}
-		log(fmt.Sprintf("03. COMPARATEUR : apps en attente de scheduling = %v", appsSansNoeud))
+		log(fmt.Sprintf("03. COMPARATEUR : apps en attente de binding = %v", appsSansNoeud))
 
 		// --- 04. ACTIONNEUR - Appliquer les changements ---
 		for _, app := range appsAAssigner {

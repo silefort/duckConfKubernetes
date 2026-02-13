@@ -1,7 +1,9 @@
 version: '3.8'
 
 x-node: &node-template
-  build: .
+  build:
+    context: ..
+    dockerfile: shared/Dockerfile
   command: >-
     bash -c "
     ln -sf /var/run/podman.sock /var/run/docker.sock &&
@@ -9,6 +11,7 @@ x-node: &node-template
     "
   volumes:
     - .:/app
+    - ../shared:/shared
     - ${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock
   working_dir: /app
   environment:
@@ -20,25 +23,33 @@ x-node: &node-template
 
 services:
   api-server:
-    build: .
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
+    container_name: api-server
     hostname: api-server
     command: python -m app.api_server
     ports:
       - "8080:8080"
     volumes:
       - .:/app
+      - ../shared:/shared
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
     labels:
       - "type=control-plane"
 
-  scheduler:
-    build: .
-    hostname: scheduler
-    command: python -m app.scheduler
+  node-binder:
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
+    container_name: node-binder
+    hostname: node-binder
+    command: python -m app.node_binder
     volumes:
       - .:/app
+      - ../shared:/shared
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
@@ -48,11 +59,15 @@ services:
       - api-server
 
   node-controller:
-    build: .
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
+    container_name: node-controller
     hostname: node-controller
     command: python -m app.node_controller
     volumes:
       - .:/app
+      - ../shared:/shared
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
@@ -63,21 +78,41 @@ services:
 
   node-1:
     <<: *node-template
+    container_name: node-1
     hostname: node-1
+    command: >-
+      bash -c "
+      ln -sf /var/run/podman.sock /var/run/docker.sock &&
+      python -m app.app_controller
+      "
     environment:
       - NODE_NAME=node-1
       - PYTHONUNBUFFERED=1
 
   node-2:
     <<: *node-template
+    container_name: node-2
     hostname: node-2
+    command: >-
+      bash -c "
+      sleep 3 &&
+      ln -sf /var/run/podman.sock /var/run/docker.sock &&
+      python -m app.app_controller
+      "
     environment:
       - NODE_NAME=node-2
       - PYTHONUNBUFFERED=1
 
   node-3:
     <<: *node-template
+    container_name: node-3
     hostname: node-3
+    command: >-
+      bash -c "
+      sleep 6 &&
+      ln -sf /var/run/podman.sock /var/run/docker.sock &&
+      python -m app.app_controller
+      "
     environment:
       - NODE_NAME=node-3
       - PYTHONUNBUFFERED=1

@@ -1,7 +1,9 @@
 version: '3.8'
 
 x-node: &node-template
-  build: .
+  build:
+    context: ..
+    dockerfile: shared/Dockerfile
   command: >-
     bash -c "
     ln -sf /var/run/podman.sock /var/run/docker.sock &&
@@ -12,6 +14,7 @@ x-node: &node-template
     "
   volumes:
     - .:/app
+    - ../shared:/shared
     - ${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock
   working_dir: /app
   labels:
@@ -19,7 +22,9 @@ x-node: &node-template
 
 services:
   app-controller:
-    build: .
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
     command: >-
       sh -c "
       echo '{}' > /app/apps.json &&
@@ -29,6 +34,7 @@ services:
       "
     volumes:
       - .:/app
+      - ../shared:/shared
     ports:
       - "8080:8080"
     depends_on:

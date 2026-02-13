@@ -50,4 +50,6 @@ while True:
         log(f"04. ACTIONNEUR : Arrêt de l'application {app} sur {node}")
         ssh(node, f"docker stop {app} && docker rm {app}")
 
+    log("")
+    log("")
     time.sleep(10)

@@ -32,7 +32,9 @@ while True:
     for application in applications:
         name, image = application.split('\t')
         apps_actuelles[name] = image
-    log(f"01. CAPTEUR : applications en cours d'exécution : {apps_actuelles}")
+    log("01. CAPTEUR : applications en cours d'exécution :")
+    for name, image in apps_actuelles.items():
+        log(f"    {name}: {image}")
 
 
     # --- 02. ETAT_DESIRE - Lire l'état désiré pour ce noeud ---
@@ -41,7 +43,9 @@ while True:
         apps_voulues = {app: info["image"] for app, info in response.items()}
     except:
         log("API server non disponible, utilisation du cache local")
-    log(f"02. ETAT_DESIRE : état désiré par l'utilisateur : {apps_voulues}")
+    log("02. ETAT_DESIRE : état désiré par l'utilisateur :")
+    for app, image in apps_voulues.items():
+        log(f"    {app}: {image}")
 
 
     # --- 03. COMPARATEUR - Identifier l'écart ---
@@ -60,5 +64,6 @@ while True:
         log(f"04. ACTIONNEUR : Arrêt de l'application {app}")
         shell(f"docker rm -f {app}")
 
-    print()
+    log("")
+    log("")
     time.sleep(10)

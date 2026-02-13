@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY main.go ./
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o scheduler .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o node-binder .
 
 # Runtime stage
 FROM docker.io/library/alpine:latest
@@ -17,6 +17,6 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-COPY --from=builder /app/scheduler .
+COPY --from=builder /app/node-binder .
 
-CMD ["./scheduler"]
+CMD ["./node-binder"]

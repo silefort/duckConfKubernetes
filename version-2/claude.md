@@ -14,7 +14,7 @@ Le projet suit une architecture inspirée de Kubernetes avec les composants suiv
 
 - **API Server** (`app/api_server.py`) : Source de vérité centrale qui expose des endpoints REST pour gérer l'état désiré du cluster
 - **App Controller** (`app/app_controller.py`) : Boucle de contrôle exécutée sur chaque nœud pour réconcilier l'état observé avec l'état désiré
-- **Scheduler** (`app/scheduler.py`) : Service responsable de l'assignation des applications aux nœuds (stratégie round-robin)
+- **Node Binder** (`app/node_binder.py`) : Service responsable de l'assignation des applications aux nœuds (stratégie round-robin)
 - **apps.json** : Fichier de stockage de l'état désiré (équivalent simplifié d'etcd dans Kubernetes)
 
 ### Fichiers utilitaires

@@ -1,3 +1,3 @@
-module scheduler
+module node-binder
 
 go 1.21

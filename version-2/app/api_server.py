@@ -51,7 +51,6 @@ def heartbeat(name):
     with open(tmp, 'w') as f:
         json.dump(nodes, f)
     os.replace(tmp, NODES_FILE)
-    log(f"Heartbeat reçu de {name}")
     return jsonify({"node": name, "heartbeat": nodes[name]})
 
 @app.route('/nodes', methods=['GET'])

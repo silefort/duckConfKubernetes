@@ -1,5 +1,5 @@
 import subprocess
 
 def shell(command):
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=None, text=True)
     return result.stdout.strip()

@@ -20,7 +20,9 @@ while True:
     except Exception as e:
         log(f"API server non disponible: {e}")
         nodes = {}
-    log(f"01. CAPTEUR : heartbeats = {nodes}")
+    log("01. CAPTEUR : heartbeats =")
+    for node, timestamp in nodes.items():
+        log(f"    {node}: {timestamp}")
 
     # --- 02. ETAT_DESIRE - Implicite, aucune application ne doit être sur un noeud considéré comme "down"---
 
@@ -48,5 +50,6 @@ while True:
             except Exception as e:
                 log(f"04. ACTIONNEUR : impossible de unschuler {app}: {e}")
 
-    print()
+    log("")
+    log("")
     time.sleep(10)
