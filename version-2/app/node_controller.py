@@ -27,14 +27,14 @@ while True:
     # --- 02. ETAT_DESIRE - Implicite, aucune application ne doit être sur un noeud considéré comme "down"---
 
     
-    # --- 03. COMPARATEUR - Identifier les noeuds down ---
+    # --- 03. DETECTEUR - Identifier les noeuds down ---
     now = datetime.now()
     noeuds_down = []
     for node, timestamp in nodes.items():
         derniere_activite = datetime.fromisoformat(timestamp)
         if (now - derniere_activite).total_seconds() > HEARTBEAT_TIMEOUT:
             noeuds_down.append(node)
-    log(f"03. COMPARATEUR : noeuds down = {noeuds_down}")
+    log(f"03. DETECTEUR : noeuds down = {noeuds_down}")
 
     # --- 04. ACTIONNEUR - retirer les noeuds aux applications dont le noeud est down ---
     for node in noeuds_down:

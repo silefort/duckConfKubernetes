@@ -31,11 +31,11 @@ while True:
     apps_voulues = {nom: info["image"] for nom, info in apps.items()}
     log(f"02. ETAT_DESIRE : état désiré par l'utilisateur : {pprint.pformat(apps_voulues)}")
 
-    log("3. COMPARATEUR - Identifier l'écart")
+    log("3. DETECTEUR - Identifier l'écart")
     apps_a_demarrer = set(apps_voulues.keys()) - set(apps_actuelles.keys())
-    log(f"03. COMPARATEUR : applications à démarrer = {apps_a_demarrer}")
+    log(f"03. DETECTEUR : applications à démarrer = {apps_a_demarrer}")
     apps_a_arreter = set(apps_actuelles.keys()) - set(apps_voulues.keys())
-    log(f"03. COMPARATEUR : applications à arrêter = {apps_a_arreter}")
+    log(f"03. DETECTEUR : applications à arrêter = {apps_a_arreter}")
 
     log("4. ACTIONNEUR - Appliquer les changements")
     for app in apps_a_demarrer:

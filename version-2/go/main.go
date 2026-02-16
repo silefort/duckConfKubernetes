@@ -97,12 +97,12 @@ func main() {
 		// --- 02. ETAT_DESIRE - Implicite : toutes les applications doivent avoir un noeud d'assigné ---
 		log("02. ETAT_DESIRE : Implicite : toutes les applications doivent avoir un noeud d'assigné")
 
-		// --- 03. COMPARATEUR - Identifier l'écart ---
+		// --- 03. DETECTEUR - Identifier l'écart ---
 		appsAAssigner := make([]string, 0, len(appsSansNoeud))
 		for appName := range appsSansNoeud {
 			appsAAssigner = append(appsAAssigner, appName)
 		}
-		log(fmt.Sprintf("03. COMPARATEUR : apps en attente de binding = %v", appsSansNoeud))
+		log(fmt.Sprintf("03. DETECTEUR : apps en attente de binding = %v", appsSansNoeud))
 
 		// --- 04. ACTIONNEUR - Appliquer les changements ---
 		for _, app := range appsAAssigner {

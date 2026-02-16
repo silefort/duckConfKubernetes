@@ -48,11 +48,11 @@ while True:
         log(f"    {app}: {image}")
 
 
-    # --- 03. COMPARATEUR - Identifier l'écart ---
+    # --- 03. DETECTEUR - Identifier l'écart ---
     apps_a_demarrer = set(apps_voulues.keys()) - set(apps_actuelles.keys())
     apps_a_arreter = set(apps_actuelles.keys()) - set(apps_voulues.keys())
-    log(f"03. COMPARATEUR : applications à demarrer = {apps_a_demarrer}")
-    log(f"03. COMPARATEUR : applications à arreter = {apps_a_arreter}")
+    log(f"03. DETECTEUR : applications à demarrer = {apps_a_demarrer}")
+    log(f"03. DETECTEUR : applications à arreter = {apps_a_arreter}")
 
 
     # --- 04. ACTIONNEUR - Appliquer les changements ---

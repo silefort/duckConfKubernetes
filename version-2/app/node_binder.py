@@ -28,9 +28,9 @@ while True:
     # --- 02. ETAT_DESIRE - Implicite : toutes les applications doivent avoir un noeud d'assigné ---
     log(f"02. ETAT_DESIRE : Implicite : toutes les applications doivent avoir un noeud d'assigné")
 
-    # --- 03. COMPARATEUR - Identifier l'écart ---
+    # --- 03. DETECTEUR - Identifier l'écart ---
     apps_a_assigner = list(apps_sans_noeud.keys())
-    log("03. COMPARATEUR : apps en attente de binding :")
+    log("03. DETECTEUR : apps en attente de binding :")
     for app, info in apps_sans_noeud.items():
         log(f"    {app}: {info.get('image', 'N/A')}")
 
