@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import paramiko
 
-def ssh(node, cmd, timeout=5):
+def ssh(node, cmd, timeout=10):
     """Execute une commande sur un noeud via SSH avec timeout"""
     try:
         client = paramiko.SSHClient()

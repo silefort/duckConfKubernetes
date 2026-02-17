@@ -32,7 +32,7 @@ build:
 	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) build
 
 cluster_start:
-	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) up
+	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) up -d
 
 cluster_stop:
 	@$(DOCKER) unpause $$($(DOCKER) ps -aq --filter status=paused) 2>/dev/null || true
@@ -73,8 +73,8 @@ logs:
 	colorize_logs() { \
 		local service=$$1; \
 		local color=$$2; \
-		if $(DOCKER) ps --format '{{.Names}}' | grep -q "^version-$(VERSION)_$${service}_1$$"; then \
-			$(DOCKER) logs -f --tail 20 "version-$(VERSION)_$${service}_1" 2>&1 | while IFS= read -r line; do \
+		if $(DOCKER) ps --format '{{.Names}}' | grep -q "^$${service}$$"; then \
+			$(DOCKER) logs -f --tail 20 "$${service}" 2>&1 | while IFS= read -r line; do \
 				printf "%b[%s]%b %s\n" "$${color}" "$${service}" "$${NC}" "$$line"; \
 			done; \
 		fi; \
@@ -119,7 +119,7 @@ app_kill:
 	echo "make node_ssh NODE=$$NODE"; \
 	echo "docker rm -f $(NAME)"
 	@NODE=$$($(DOCKER) ps --filter "name=$(NAME)" --filter "label=type=app" --format "{{.Labels.node}}" | head -1); \
-	$(DOCKER) exec version-$(VERSION)_$${NODE}_1 docker rm -f $(NAME) > /dev/null 2>&1
+	$(DOCKER) exec $${NODE} docker rm -f $(NAME) > /dev/null 2>&1
 
 apps_clean:
 	@$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "label=type=app") 2>/dev/null || true
@@ -134,23 +134,23 @@ node_stop:
 	@test -n "$(NODE)" || (echo "Erreur: NODE non défini. Usage: make node_stop NODE=<node>" && false)
 	@touch version-$(VERSION)/.paused_$(NODE)
 	@$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "label=type=app" --filter "label=node=$(NODE)") 2>/dev/null || true
-	$(DOCKER) pause version-$(VERSION)_$(NODE)_1
+	$(DOCKER) pause $(NODE)
 
 node_start:
 	@test -n "$(NODE)" || (echo "Erreur: NODE non défini. Usage: make node_start NODE=<node>" && false)
 	@rm -f version-$(VERSION)/.paused_$(NODE)
-	$(DOCKER) unpause version-$(VERSION)_$(NODE)_1
+	$(DOCKER) unpause $(NODE)
 
 node_ssh:
 	@test -n "$(NODE)" || (echo "Erreur: NODE non défini. Usage: make node_ssh NODE=<node>" && false)
-	@$(DOCKER) exec -it version-$(VERSION)_$(NODE)_1 /bin/bash
+	@$(DOCKER) exec -it $(NODE) /bin/bash
 
 api_stop:
-	$(DOCKER) pause version-$(VERSION)_api-server_1
+	$(DOCKER) pause api-server
 
 api_start:
 	@echo '{}' > version-$(VERSION)/nodes.json
-	$(DOCKER) unpause version-$(VERSION)_api-server_1
+	$(DOCKER) unpause api-server
 
 watch:
 	watch -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"

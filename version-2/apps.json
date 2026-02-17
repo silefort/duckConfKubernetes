@@ -5,7 +5,7 @@
   },
   "duck-2": {
     "image": "nginx:alpine",
-    "node": "node-3"
+    "node": "node-2"
   },
   "duck-3": {
     "image": "nginx:alpine",

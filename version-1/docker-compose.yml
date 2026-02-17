@@ -25,6 +25,7 @@ services:
     build:
       context: ..
       dockerfile: shared/Dockerfile
+    container_name: app-controller
     command: >-
       sh -c "
       echo '{}' > /app/apps.json &&
@@ -50,18 +51,21 @@ services:
 
   node-1:
     <<: *node-template
+    container_name: node-1
     hostname: node-1
     environment:
       - NODE_NAME=node-1
 
   node-2:
     <<: *node-template
+    container_name: node-2
     hostname: node-2
     environment:
       - NODE_NAME=node-2
 
   node-3:
     <<: *node-template
+    container_name: node-3
     hostname: node-3
     environment:
       - NODE_NAME=node-3

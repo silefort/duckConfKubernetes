@@ -12,6 +12,7 @@ APPS_FILE = "/app/apps.json"
 compteur_node = 0
 
 while True:
+    debut_boucle = time.time()
     log("======================================================")
     log("BOUCLE DE CONTROLE CENTRALISÉE")
     log("======================================================")
@@ -50,6 +51,9 @@ while True:
         log(f"04. ACTIONNEUR : Arrêt de l'application {app} sur {node}")
         ssh(node, f"docker stop {app} && docker rm {app}")
 
+    fin_boucle = time.time()
+    duree = fin_boucle - debut_boucle
+    log(f"⏱️  TEMPS DE BOUCLE : {duree:.2f}s")
     log("")
     log("")
     time.sleep(10)
