@@ -64,7 +64,7 @@ services:
       dockerfile: shared/Dockerfile
     container_name: node-controller
     hostname: node-controller
-    command: python -m app.node_controller
+    command: bash -c "sleep 5 && python -m app.node_controller"
     volumes:
       - .:/app
       - ../shared:/shared

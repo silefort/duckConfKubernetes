@@ -12,18 +12,16 @@ API_SERVER = "http://api-server:8080"
 NODE_NAME = os.environ.get("NODE_NAME", "unknown")
 
 apps_voulues = {}
+iteration = 0
 
 while True:
+    iteration += 1
 
-    log("======================================================")
-    log("APP CONTROLLER - BOUCLE DE CONTRÔLE LOCALE")
-    log("======================================================")
-
-    # --- 00. Envoyer un heartbeat à l'API Server
+    # --- 00. Envoyer un heartbeat à l'API Server (silencieux si OK)
     try:
         put(f"{API_SERVER}/node/{NODE_NAME}/heartbeat", {"timestamp": datetime.now().isoformat()})
     except Exception as e:
-        log(f"00. HEARTBEAT : échec ({e})")
+        log(f"#{iteration} heartbeat échoué ({e})")
 
     # --- 01. CAPTEUR - Observer l'état actuel ---
     apps_actuelles = {}
@@ -32,38 +30,32 @@ while True:
     for application in applications:
         name, image = application.split('\t')
         apps_actuelles[name] = image
-    log("01. CAPTEUR : applications en cours d'exécution :")
-    for name, image in apps_actuelles.items():
-        log(f"    {name}: {image}")
-
 
     # --- 02. ETAT_DESIRE - Lire l'état désiré pour ce noeud ---
+    api_error = None
     try:
         response = get(f"{API_SERVER}/apps?nodeName={NODE_NAME}")
         apps_voulues = {app: info["image"] for app, info in response.items()}
-    except:
-        log("API server non disponible, utilisation du cache local")
-    log("02. ETAT_DESIRE : état désiré par l'utilisateur :")
-    for app, image in apps_voulues.items():
-        log(f"    {app}: {image}")
-
+    except Exception as e:
+        api_error = e
 
     # --- 03. DETECTEUR - Identifier l'écart ---
     apps_a_demarrer = set(apps_voulues.keys()) - set(apps_actuelles.keys())
     apps_a_arreter = set(apps_actuelles.keys()) - set(apps_voulues.keys())
-    log(f"03. DETECTEUR : applications à demarrer = {apps_a_demarrer}")
-    log(f"03. DETECTEUR : applications à arreter = {apps_a_arreter}")
 
+    if not apps_a_demarrer and not apps_a_arreter and not api_error:
+        log(f"#{iteration} {len(apps_voulues)} désirée(s) / {len(apps_actuelles)} en cours — état désiré atteint")
+    else:
+        if api_error:
+            log(f"#{iteration} API server non disponible ({api_error}), utilisation du dernier état connu")
+        else:
+            log(f"#{iteration} {len(apps_voulues)} désirée(s) / {len(apps_actuelles)} en cours")
+        # --- 04. eCTIONNEUR - Appliquer les changements ---
+        for app in apps_a_demarrer:
+            log(f"#{iteration} démarrage de {app}")
+            shell(f"docker run -d --name {app} {apps_voulues[app]}")
+        for app in apps_a_arreter:
+            log(f"#{iteration} arrêt de {app}")
+            shell(f"docker rm -f {app}")
 
-    # --- 04. ACTIONNEUR - Appliquer les changements ---
-    for app in apps_a_demarrer:
-        log(f"04. ACTIONNEUR : Démarrage de l'application {app}")
-        shell(f"docker run -d --name {app} {apps_voulues[app]}")
-
-    for app in apps_a_arreter:
-        log(f"04. ACTIONNEUR : Arrêt de l'application {app}")
-        shell(f"docker rm -f {app}")
-
-    log("")
-    log("")
     time.sleep(10)

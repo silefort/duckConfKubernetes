@@ -9,18 +9,10 @@
   },
   "duck-3": {
     "image": "nginx:alpine",
-    "node": "node-2"
+    "node": "node-3"
   },
   "duck-4": {
     "image": "nginx:alpine",
-    "node": "node-2"
-  },
-  "duck-5": {
-    "image": "nginx:alpine",
-    "node": "node-2"
-  },
-  "duck-6": {
-    "image": "nginx:alpine",
-    "node": "node-2"
+    "node": "node-3"
   }
 }

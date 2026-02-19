@@ -5,8 +5,6 @@ if [ -z "$NODE_NAME" ] && [ -f /etc/node_name ]; then
   NODE_NAME=$(cat /etc/node_name)
 fi
 
-echo "docker $@" >&2
-
 if [ "$1" = "ps" ]; then
   /usr/local/bin/docker.orig ps --filter "label=node=$NODE_NAME" "${@:2}"
 elif [ "$1" = "run" ]; then

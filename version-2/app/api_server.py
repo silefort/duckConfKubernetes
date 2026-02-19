@@ -34,7 +34,7 @@ def update_app(name):
     with open(APPS_FILE, 'w') as f:
         json.dump(apps, f, indent=2)
 
-    log(f"{name} mis à jour: {apps[name]}")
+    log(f"Mise à jour de '{name}' : {apps[name]}")
     return jsonify({"app": name, **apps[name]})
 
 def _read_nodes():

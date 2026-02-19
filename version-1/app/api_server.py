@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import json
 from flask import Flask, jsonify, request
-from app.utils.log_helper import create_logger
+from app.utils.log_helper import create_logger, setup_flask_logger
 
 log = create_logger("api-server")
+setup_flask_logger("api-server")
 
 app = Flask(__name__)
 APPS_FILE = "/app/apps.json"
@@ -18,7 +19,7 @@ def update_app(name):
     with open(APPS_FILE, 'w') as f:
         json.dump(apps, f, indent=2)
 
-    log(f"{name} mis à jour dans l'état désiré")
+    log(f"état désiré mis à jour : {name}")
     return jsonify({"app": name})
 
 app.run(host='0.0.0.0', port=8080)

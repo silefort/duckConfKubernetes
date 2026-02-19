@@ -4,7 +4,7 @@ VERSION ?= 2
 
 COMPOSE_FLAGS = -f version-$(VERSION)/docker-compose.yml -p version-$(VERSION)
 
-.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux
+.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill app_crash apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux record record_stop
 
 help:
 	@echo "Commandes disponibles (VERSION=<0|1|2>):"
@@ -15,6 +15,7 @@ help:
 	@echo "  make app_start NAME=<name> IMAGE=<image> - Demarre un app (version-0)"
 	@echo "  make app_apply NAME=<name> IMAGE=<image> - Décle un app (version-1/2)"
 	@echo "  make app_kill NAME=<name>                 - Kill une app spécifique"
+	@echo "  make app_crash NAME=<name>               - Simule un crash (OOM kill)"
 	@echo "  make apps_clean                          - Supprime tous les apps"
 	@echo "  make apps_list                           - Liste les apps"
 	@echo "  make node_stop NODE=<node>               - Pause un noeud"
@@ -24,8 +25,9 @@ help:
 	@echo "  make api_stop                            - Pause l'api server (version-2)"
 	@echo "  make api_start                           - Unpause l'api server (version-2)"
 	@echo "  make watch                               - Watch l'état du cluster (version-2)"
-	@echo "  make viddy                               - Watch l'état avec viddy (diff coloré)"
 	@echo "  make tmux                                - Ouvre une session tmux (logs + cmds)"
+	@echo "  make record [VERSION=<0|1|2>]            - Enregistre la démo avec asciinema"
+	@echo "  make record_stop [VERSION=<0|1|2>]       - Arrête l'enregistrement"
 	@echo "  make delete_all                          - Supprime tous les containers"
 
 build:
@@ -39,7 +41,7 @@ cluster_stop:
 	@rm -f version-$(VERSION)/.paused_*
 	$(DOCKER_COMPOSE) $(COMPOSE_FLAGS) down -t 0
 
-cluster_restart: cluster_stop cluster_start cluster_list
+cluster_restart: cluster_stop apps_clean cluster_start cluster_list 
 
 cluster_list:
 	@echo "=============================="
@@ -48,6 +50,7 @@ cluster_list:
 	@$(DOCKER) ps -a --format "{{.Names}}\t{{.Labels.type}}" | grep -E "node|control-plane" | awk '{ print $1 }' | sort
 
 logs:
+	clear
 	@RED='\033[0;31m'; \
 	GREEN='\033[0;32m'; \
 	YELLOW='\033[0;33m'; \
@@ -121,6 +124,10 @@ app_kill:
 	@NODE=$$($(DOCKER) ps --filter "name=$(NAME)" --filter "label=type=app" --format "{{.Labels.node}}" | head -1); \
 	$(DOCKER) exec $${NODE} docker rm -f $(NAME) > /dev/null 2>&1
 
+app_crash:
+	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_crash NAME=<name>" && false)
+	@$(DOCKER) kill $(NAME)
+
 apps_clean:
 	@$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "label=type=app") 2>/dev/null || true
 	echo '{}' > version-$(VERSION)/apps.json
@@ -153,10 +160,7 @@ api_start:
 	$(DOCKER) unpause api-server
 
 watch:
-	watch -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"
-
-viddy:
-	viddy -d -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"
+	watch -t -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"
 
 _watch_display:
 	@if [ "$(VERSION)" = "1" ] || [ "$(VERSION)" = "2" ]; then \
@@ -166,7 +170,7 @@ _watch_display:
 	fi ; \
 	if [ "$(VERSION)" = "2" ]; then \
 		echo "=== NOEUDS (nodes.json) ===" ; \
-		python3 -c 'import json,os;d=json.load(open("version-$(VERSION)/nodes.json")) if os.path.exists("version-$(VERSION)/nodes.json") else {};print("%-20s %s"%("NOEUD","HEARTBEAT"));[print("%-20s %s"%(n,t)) for n,t in sorted(d.items())] if d else print("  (aucun heartbeat)")' ; \
+		python3 -c 'import json,os;from datetime import datetime,timezone;d=json.load(open("version-$(VERSION)/nodes.json")) if os.path.exists("version-$(VERSION)/nodes.json") else {};now=datetime.now(timezone.utc).replace(tzinfo=None);print("%-20s %-30s %s"%("NOEUD","HEARTBEAT",""));[print("%-20s %-30s il y a %ds"%(n,t,round((now-datetime.fromisoformat(t)).total_seconds()))) for n,t in sorted(d.items())] if d else print("  (aucun heartbeat)")' ; \
 		echo ; \
 	fi ; \
 	echo "=== APPS EN COURS ===" ; \
@@ -183,6 +187,12 @@ _watch_display:
 
 tmux:
 	@bash setup-tmux.sh $(VERSION)
+
+record:
+	cd demo && ./record-demo.sh version-$(VERSION)
+
+record_stop:
+	@tmux kill-session -t "demo-v$(VERSION)" 2>/dev/null && echo "Enregistrement arrêté." || echo "Aucune session demo-v$(VERSION) en cours."
 
 delete_all:
 	@$(DOCKER) unpause $$($(DOCKER) ps -aq --filter status=paused) 2>/dev/null || true
