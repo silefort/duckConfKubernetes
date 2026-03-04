@@ -12,7 +12,7 @@ tmux new-session -d -s "$SESSION" -c "$DIR"
 
 # Lancer setup-tmux.sh depuis l'intérieur de la session
 # (setup-tmux.sh crée la fenêtre "version-0" via tmux new-window)
-tmux send-keys -t "$SESSION" "bash setup-tmux.sh 0 && exit" Enter
+tmux send-keys -t "$SESSION" "bash setup-tmux.sh 0 demo && exit" Enter
 
 # Attendre que la fenêtre "version-0" soit créée
 for i in $(seq 1 20); do

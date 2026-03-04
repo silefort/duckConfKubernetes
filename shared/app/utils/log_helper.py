@@ -18,7 +18,7 @@ def setup_flask_logger(prefix):
             msg = self.format(record)
             match = _ACCESS_LOG_RE.search(msg)
             if match:
-                print(f"{match.group(1)} -> {match.group(2)}")
+                print(match.group(1))
 
     werkzeug_logger = logging.getLogger('werkzeug')
     werkzeug_logger.handlers = []

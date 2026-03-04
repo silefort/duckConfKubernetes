@@ -4,7 +4,7 @@ VERSION ?= 2
 
 COMPOSE_FLAGS = -f version-$(VERSION)/docker-compose.yml -p version-$(VERSION)
 
-.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_start app_apply app_kill app_crash apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux record record_stop
+.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_create app_apply app_kill app_crash apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux record record_stop demo_play
 
 help:
 	@echo "Commandes disponibles (VERSION=<0|1|2>):"
@@ -12,8 +12,7 @@ help:
 	@echo "  make cluster_stop                        - Arrete le cluster"
 	@echo "  make cluster_restart                     - Redemarre le cluster"
 	@echo "  make cluster_list                        - Liste les containers d'infrastructure"
-	@echo "  make app_start NAME=<name> IMAGE=<image> - Demarre un app (version-0)"
-	@echo "  make app_apply NAME=<name> IMAGE=<image> - Décle un app (version-1/2)"
+	@echo "  make app_apply NAME=<name> IMAGE=<image> - Déclare une app"
 	@echo "  make app_kill NAME=<name>                 - Kill une app spécifique"
 	@echo "  make app_crash NAME=<name>               - Simule un crash (OOM kill)"
 	@echo "  make apps_clean                          - Supprime tous les apps"
@@ -25,9 +24,10 @@ help:
 	@echo "  make api_stop                            - Pause l'api server (version-2)"
 	@echo "  make api_start                           - Unpause l'api server (version-2)"
 	@echo "  make watch                               - Watch l'état du cluster (version-2)"
-	@echo "  make tmux                                - Ouvre une session tmux (logs + cmds)"
+	@echo "  make tmux [DEMO=demo]                    - Ouvre une session tmux (logs + cmds)"
 	@echo "  make record [VERSION=<0|1|2>]            - Enregistre la démo avec asciinema"
 	@echo "  make record_stop [VERSION=<0|1|2>]       - Arrête l'enregistrement"
+	@echo "  make demo_play [VERSION=<0|1|2>]         - Rejoue le dernier enregistrement (Space pour pause)"
 	@echo "  make delete_all                          - Supprime tous les containers"
 
 build:
@@ -101,12 +101,7 @@ logs:
 		wait; \
 	fi
 
-app_start:
-	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_start NAME=<name> IMAGE=<image>" && false)
-	@test -n "$(IMAGE)" || (echo "Erreur: IMAGE non défini. Usage: make app_start NAME=<name> IMAGE=<image>" && false)
-	@curl -s -X POST http://localhost:8080/app/start \
-		-H "Content-Type: application/json" \
-		-d '{"name": "$(NAME)", "image": "$(IMAGE)"}' | python3 -m json.tool
+app_create: app_apply
 
 app_apply:
 	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_apply NAME=<name> IMAGE=<image>" && false)
@@ -126,7 +121,11 @@ app_kill:
 
 app_crash:
 	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_crash NAME=<name>" && false)
-	@$(DOCKER) kill $(NAME)
+	@NODE=$$($(DOCKER) ps --filter "name=$(NAME)" --filter "label=type=app" --format "{{.Labels.node}}" | head -1); \
+	test -n "$$NODE" || (echo "Erreur: Application $(NAME) introuvable" && false); \
+	echo "make node_ssh NODE=$$NODE"; \
+	echo "docker kill $(NAME)"; \
+	$(DOCKER) kill $(NAME) > /dev/null 2>&1
 
 apps_clean:
 	@$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "label=type=app") 2>/dev/null || true
@@ -186,13 +185,22 @@ _watch_display:
 	done
 
 tmux:
-	@bash setup-tmux.sh $(VERSION)
+	@bash setup-tmux.sh $(VERSION) $(DEMO)
 
 record:
 	cd demo && ./record-demo.sh version-$(VERSION)
 
 record_stop:
 	@tmux kill-session -t "demo-v$(VERSION)" 2>/dev/null && echo "Enregistrement arrêté." || echo "Aucune session demo-v$(VERSION) en cours."
+
+demo_play:
+	@CAST=$$(ls -t demo/recordings/version-$(VERSION)-*.cast 2>/dev/null | head -1); \
+	if [ -z "$$CAST" ]; then \
+		echo "Aucun enregistrement pour VERSION=$(VERSION). Lancez d'abord: make record VERSION=$(VERSION)"; \
+		exit 1; \
+	fi; \
+	echo "Lecture: $$CAST"; \
+	asciinema play -i 10 "$$CAST"
 
 delete_all:
 	@$(DOCKER) unpause $$($(DOCKER) ps -aq --filter status=paused) 2>/dev/null || true

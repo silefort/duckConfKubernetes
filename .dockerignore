@@ -1,0 +1,6 @@
+demos/
+ansible-setup/
+*.md
+!shared/**
+.git
+local/

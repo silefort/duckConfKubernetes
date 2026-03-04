@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import json
 from flask import Flask, jsonify, request
-from app.utils.log_helper import create_logger, setup_flask_logger
+import logging
+from app.utils.log_helper import create_logger
 
 log = create_logger("api-server")
-setup_flask_logger("api-server")
+logging.getLogger('werkzeug').disabled = True
 
 app = Flask(__name__)
 APPS_FILE = "/app/apps.json"
