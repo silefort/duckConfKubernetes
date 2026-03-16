@@ -11,3 +11,14 @@ Thumbs.db
 
 # Docker
 *.env
+
+# Local
+local/
+
+# Demo recordings
+demo/recordings/
+
+# Runtime state
+apps.json
+nodes.json
+.paused_node-*

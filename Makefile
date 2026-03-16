@@ -4,7 +4,7 @@ VERSION ?= 2
 
 COMPOSE_FLAGS = -f version-$(VERSION)/docker-compose.yml -p version-$(VERSION)
 
-.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_create app_apply app_kill app_crash apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux record record_stop demo_play
+.PHONY: help build cluster_start cluster_stop cluster_restart cluster_list app_create app_apply app_crash apps_clean apps_list node_stop node_start node_ssh api_stop api_start logs watch viddy _watch_display delete_all tmux record record_stop demo_play
 
 help:
 	@echo "Commandes disponibles (VERSION=<0|1|2>):"
@@ -13,7 +13,6 @@ help:
 	@echo "  make cluster_restart                     - Redemarre le cluster"
 	@echo "  make cluster_list                        - Liste les containers d'infrastructure"
 	@echo "  make app_apply NAME=<name> IMAGE=<image> - Déclare une app"
-	@echo "  make app_kill NAME=<name>                 - Kill une app spécifique"
 	@echo "  make app_crash NAME=<name>               - Simule un crash (OOM kill)"
 	@echo "  make apps_clean                          - Supprime tous les apps"
 	@echo "  make apps_list                           - Liste les apps"
@@ -110,15 +109,6 @@ app_apply:
 		-H "Content-Type: application/json" \
 		-d '{"image": "$(IMAGE)"}' | python3 -m json.tool
 
-app_kill:
-	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_kill NAME=<name>" && false)
-	@NODE=$$($(DOCKER) ps --filter "name=$(NAME)" --filter "label=type=app" --format "{{.Labels.node}}" | head -1); \
-	test -n "$$NODE" || (echo "Erreur: Application $(NAME) introuvable" && false); \
-	echo "make node_ssh NODE=$$NODE"; \
-	echo "docker rm -f $(NAME)"
-	@NODE=$$($(DOCKER) ps --filter "name=$(NAME)" --filter "label=type=app" --format "{{.Labels.node}}" | head -1); \
-	$(DOCKER) exec $${NODE} docker rm -f $(NAME) > /dev/null 2>&1
-
 app_crash:
 	@test -n "$(NAME)" || (echo "Erreur: NAME non défini. Usage: make app_crash NAME=<name>" && false)
 	@NODE=$$($(DOCKER) ps --filter "name=$(NAME)" --filter "label=type=app" --format "{{.Labels.node}}" | head -1); \
@@ -139,13 +129,15 @@ apps_list:
 node_stop:
 	@test -n "$(NODE)" || (echo "Erreur: NODE non défini. Usage: make node_stop NODE=<node>" && false)
 	@touch version-$(VERSION)/.paused_$(NODE)
-	@$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "label=type=app" --filter "label=node=$(NODE)") 2>/dev/null || true
-	$(DOCKER) pause $(NODE)
+	@$(DOCKER) rm -f $$($(DOCKER) ps -aq --filter "label=type=app" --filter "label=node=$(NODE)") > /dev/null 2>&1 || true
+	@$(DOCKER) pause $(NODE) > /dev/null
+	@echo "Noeud $(NODE) stoppé"
 
 node_start:
 	@test -n "$(NODE)" || (echo "Erreur: NODE non défini. Usage: make node_start NODE=<node>" && false)
 	@rm -f version-$(VERSION)/.paused_$(NODE)
-	$(DOCKER) unpause $(NODE)
+	@$(DOCKER) unpause $(NODE) > /dev/null
+	@echo "Noeud $(NODE) démarré"
 
 node_ssh:
 	@test -n "$(NODE)" || (echo "Erreur: NODE non défini. Usage: make node_ssh NODE=<node>" && false)
@@ -162,14 +154,14 @@ watch:
 	watch -t -n 2 "VERSION=$(VERSION) $(MAKE) --no-print-directory _watch_display"
 
 _watch_display:
-	@if [ "$(VERSION)" = "1" ] || [ "$(VERSION)" = "2" ]; then \
-		echo "=== ÉTAT DÉSIRÉ (apps.json) ===" ; \
-		python3 -c 'import json,os;d=json.load(open("version-$(VERSION)/apps.json")) if os.path.exists("version-$(VERSION)/apps.json") else {};[print(f"{n}: {json.dumps(i)}") for n,i in sorted(d.items())] if d else print("  (aucune app)")' ; \
-		echo ; \
-	fi ; \
-	if [ "$(VERSION)" = "2" ]; then \
+	@if [ "$(VERSION)" = "2" ]; then \
 		echo "=== NOEUDS (nodes.json) ===" ; \
 		python3 -c 'import json,os;from datetime import datetime,timezone;d=json.load(open("version-$(VERSION)/nodes.json")) if os.path.exists("version-$(VERSION)/nodes.json") else {};now=datetime.now(timezone.utc).replace(tzinfo=None);print("%-20s %-30s %s"%("NOEUD","HEARTBEAT",""));[print("%-20s %-30s il y a %ds"%(n,t,round((now-datetime.fromisoformat(t)).total_seconds()))) for n,t in sorted(d.items())] if d else print("  (aucun heartbeat)")' ; \
+		echo ; \
+	fi ; \
+	if [ "$(VERSION)" = "1" ] || [ "$(VERSION)" = "2" ]; then \
+		echo "=== ÉTAT DÉSIRÉ (apps.json) ===" ; \
+		python3 -c 'import json,os;d=json.load(open("version-$(VERSION)/apps.json")) if os.path.exists("version-$(VERSION)/apps.json") else {};[print(f"{n}: {json.dumps(i)}") for n,i in sorted(d.items())] if d else print("  (aucune app)")' ; \
 		echo ; \
 	fi ; \
 	echo "=== APPS EN COURS ===" ; \

@@ -46,7 +46,7 @@ services:
       dockerfile: shared/Dockerfile
     container_name: node-binder
     hostname: node-binder
-    command: python -m app.node_binder
+    command: bash -c "sleep 5 && python -m app.node_binder"
     volumes:
       - .:/app
       - ../shared:/shared
@@ -82,6 +82,7 @@ services:
     hostname: node-1
     command: >-
       bash -c "
+      sleep 3 &&
       ln -sf /var/run/podman.sock /var/run/docker.sock &&
       python -m app.app_controller
       "
@@ -109,7 +110,7 @@ services:
     hostname: node-3
     command: >-
       bash -c "
-      sleep 6 &&
+      sleep 3 &&
       ln -sf /var/run/podman.sock /var/run/docker.sock &&
       python -m app.app_controller
       "

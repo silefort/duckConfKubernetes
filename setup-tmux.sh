@@ -120,12 +120,12 @@ case "$VERSION" in
     # └─────────────────────────────────────────┘
     WIN=$(tmux new-window -n "version-2" -P -F "#{window_index}")
 
-    # Découpage : haut (70%) / bas (30% - commandes)
+    # Découpage : haut (80%) / bas (20% - commandes)
     tmux split-window -v -l '20%' -t "${WIN}.1"
     # Découper le haut en deux (logs | watch)
-    tmux split-window -h -l '40%' -t "${WIN}.1"
+    tmux split-window -h -l '50%' -t "${WIN}.1"
     # Découper le pane de gauche en 2
-    tmux split-window -v -t "${WIN}.1"
+    tmux split-window -v -l '30%' -t "${WIN}.1"
 
     tmux send-keys -t "${WIN}.1" "cd $DIR && make delete_all && make cluster_restart VERSION=2 && make logs SERVICE=node-binder,node-controller VERSION=2" C-m
     tmux send-keys -t "${WIN}.2" "cd $DIR && sleep 10 && make logs SERVICE=node-1 VERSION=2" C-m

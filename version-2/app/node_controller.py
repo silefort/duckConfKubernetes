@@ -12,6 +12,7 @@ iteration = 0
 
 while True:
     iteration += 1
+    debut = time.time()
     now = datetime.now()
     api_error = None
     try:
@@ -31,7 +32,7 @@ while True:
     if api_error:
         log(f"#{iteration} API server non disponible ({api_error})")
     elif not noeuds_down:
-        log(f"#{iteration} {len(nodes)} noeud(s) en ligne")
+        log(f"#{iteration} {len(nodes)} noeud(s) en ligne en {time.time() - debut:.2f}s")
     else:
         log(f"#{iteration} noeud(s) hors ligne : {', '.join(noeuds_down)}")
         # --- 04. ACTIONNEUR - retirer les noeuds aux applications dont le noeud est down ---
@@ -48,4 +49,5 @@ while True:
                     log(f"#{iteration} {node} détaché de {app}")
                 except Exception as e:
                     log(f"#{iteration} impossible de retirer '{app}' de '{node}' ({e})")
+        log(f"#{iteration} {len(noeuds_down)} noeud(s) traité(s) en {time.time() - debut:.2f}s")
     time.sleep(10)

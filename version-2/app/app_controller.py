@@ -16,6 +16,7 @@ iteration = 0
 
 while True:
     iteration += 1
+    debut = time.time()
 
     # --- 00. Envoyer un heartbeat à l'API Server (silencieux si OK)
     try:
@@ -44,12 +45,12 @@ while True:
     apps_a_arreter = set(apps_actuelles.keys()) - set(apps_voulues.keys())
 
     if not apps_a_demarrer and not apps_a_arreter and not api_error:
-        log(f"#{iteration} {len(apps_voulues)} désirée(s) / {len(apps_actuelles)} en cours — état désiré atteint")
+        log(f"#{iteration} {len(apps_voulues)} désirée(s) / {len(apps_actuelles)} en cours — état désiré atteint en {time.time() - debut:.2f}s")
     else:
         if api_error:
             log(f"#{iteration} API server non disponible ({api_error}), utilisation du dernier état connu")
         else:
-            log(f"#{iteration} {len(apps_voulues)} désirée(s) / {len(apps_actuelles)} en cours")
+            log(f"#{iteration} {len(apps_voulues)} désirée(s) / {len(apps_actuelles)} en cours en {time.time() - debut:.2f}s")
         # --- 04. eCTIONNEUR - Appliquer les changements ---
         for app in apps_a_demarrer:
             log(f"#{iteration} démarrage de {app}")

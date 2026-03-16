@@ -12,6 +12,7 @@ iteration = 0
 
 while True:
     iteration += 1
+    debut = time.time()
     api_error = None
     try:
         apps_sans_noeud = get(f"{API_SERVER}/apps?nodeName=")
@@ -27,7 +28,7 @@ while True:
     if api_error:
         log(f"#{iteration} API server non disponible ({api_error})")
     elif not apps_a_assigner:
-        log(f"#{iteration} toutes les apps assignées")
+        log(f"#{iteration} toutes les apps assignées en {time.time() - debut:.2f}s")
     else:
         log(f"#{iteration} {len(apps_a_assigner)} app(s) à assigner")
         # --- 04. ACTIONNEUR - Appliquer les changements ---
@@ -36,4 +37,5 @@ while True:
             compteur_node += 1
             put(f"{API_SERVER}/app/{app}", {"node": node})
             log(f"#{iteration} assigner {app} à {node}")
+        log(f"#{iteration} {len(apps_a_assigner)} app(s) assignée(s) en {time.time() - debut:.2f}s")
     time.sleep(10)
